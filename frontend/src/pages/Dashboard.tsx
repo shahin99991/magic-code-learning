@@ -1,147 +1,152 @@
-import { Box, Grid, Paper, Typography, useTheme } from '@mui/material';
+import React from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Paper,
+  useTheme,
+} from '@mui/material';
 import { motion } from 'framer-motion';
 
-// アニメーション設定
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
+    y: 0,
     transition: {
-      staggerChildren: 0.1,
+      duration: 0.6,
+      when: 'beforeChildren',
+      staggerChildren: 0.2,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
-    y: 0,
     opacity: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 100,
-    },
+    y: 0,
+    transition: { duration: 0.4 },
   },
 };
 
-export default function Dashboard() {
+const Dashboard: React.FC = () => {
   const theme = useTheme();
 
   return (
-    <Box
-      component={motion.div}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* ヘッダーセクション */}
-      <Box
-        component={motion.div}
-        variants={itemVariants}
-        sx={{ mb: 4 }}
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
       >
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          sx={{
-            fontFamily: 'Merriweather',
-            color: theme.palette.primary.main,
-          }}
-        >
-          魔法使いの学習ダッシュボード
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          color="text.secondary"
-          sx={{ mb: 3 }}
-        >
-          今日も新しい魔法（プログラミング）の習得に挑戦しましょう！
-        </Typography>
-      </Box>
-
-      <Grid container spacing={3}>
-        {/* 現在のステータス */}
-        <Grid item xs={12} md={4}>
-          <Paper
-            component={motion.div}
-            variants={itemVariants}
-            sx={{
-              p: 3,
-              height: '100%',
-              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-              color: 'white',
-            }}
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            component="h1"
+            variant="h4"
+            color="primary"
+            gutterBottom
           >
-            <Typography variant="h6" gutterBottom>
-              現在のステータス
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body1">レベル: 5</Typography>
-              <Typography variant="body1">経験値: 500 / 1000</Typography>
-              <Typography variant="body1">称号: 見習い魔法使い</Typography>
-            </Box>
-          </Paper>
-        </Grid>
+            魔法学校へようこそ
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            プログラミングの魔法を学び、新しい力を身につけましょう
+          </Typography>
+        </Box>
 
-        {/* 現在の課題 */}
-        <Grid item xs={12} md={8}>
-          <Paper
-            component={motion.div}
-            variants={itemVariants}
-            sx={{ p: 3, height: '100%' }}
-          >
-            <Typography variant="h6" gutterBottom>
-              現在の課題
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body1" gutterBottom>
-                Level 1: 変数の基礎
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                魔法の基本となる変数の扱い方を学びましょう。
-                この課題では、様々な型の変数を使って魔法の素材を管理する方法を学びます。
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* 最近の活動 */}
-        <Grid item xs={12}>
-          <Paper
-            component={motion.div}
-            variants={itemVariants}
-            sx={{ p: 3 }}
-          >
-            <Typography variant="h6" gutterBottom>
-              最近の活動
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              {/* 活動リストのプレースホルダー */}
-              {[1, 2, 3].map((item) => (
-                <Box
-                  key={item}
-                  sx={{
-                    py: 2,
-                    borderBottom: 1,
-                    borderColor: 'divider',
-                    '&:last-child': {
-                      borderBottom: 0,
-                    },
-                  }}
-                >
-                  <Typography variant="body1" gutterBottom>
-                    クエスト {item} を完了しました
+        <Grid container spacing={3}>
+          {/* 現在のステータス */}
+          <Grid item xs={12} md={4}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 240,
+                  backgroundColor: theme.palette.background.paper,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  現在のステータス
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body1">
+                    レベル: 3
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    2時間前
+                  <Typography variant="body1">
+                    経験値: 2500 / 3000
+                  </Typography>
+                  <Typography variant="body1">
+                    称号: 見習い魔法使い
                   </Typography>
                 </Box>
-              ))}
-            </Box>
-          </Paper>
+              </Paper>
+            </motion.div>
+          </Grid>
+
+          {/* 現在のチャレンジ */}
+          <Grid item xs={12} md={4}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 240,
+                  backgroundColor: theme.palette.background.paper,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  現在のチャレンジ
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body1" gutterBottom>
+                    変数の魔法を習得せよ
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    整数型と浮動小数点型の違いを理解し、
+                    適切な変数を使って魔法の計算を行いましょう。
+                  </Typography>
+                </Box>
+              </Paper>
+            </motion.div>
+          </Grid>
+
+          {/* 最近の活動 */}
+          <Grid item xs={12} md={4}>
+            <motion.div variants={itemVariants}>
+              <Paper
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 240,
+                  backgroundColor: theme.palette.background.paper,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  最近の活動
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" gutterBottom>
+                    2024/03/20 15:30 - 「Hello World」の呪文を習得
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    2024/03/20 14:15 - 変数の基本を学習
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    2024/03/20 13:00 - 魔法学校に入学
+                  </Typography>
+                </Box>
+              </Paper>
+            </motion.div>
+          </Grid>
         </Grid>
-      </Grid>
-    </Box>
+      </motion.div>
+    </Container>
   );
-} 
+};
+
+export default Dashboard; 

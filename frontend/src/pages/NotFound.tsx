@@ -1,76 +1,88 @@
-import { Box, Button, Container, Typography, useTheme } from '@mui/material';
-import { motion } from 'framer-motion';
+import React from 'react';
+import { Container, Box, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-export default function NotFound() {
-  const theme = useTheme();
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      when: 'beforeChildren',
+      staggerChildren: 0.2,
+    },
+  },
+};
+
+const NotFound: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <Container maxWidth="sm">
-      <Box
-        component={motion.div}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '60vh',
-          textAlign: 'center',
-        }}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
       >
-        <Typography
-          variant="h1"
-          component="h1"
+        <Box
           sx={{
-            fontSize: '6rem',
-            fontWeight: 700,
-            color: theme.palette.primary.main,
-            mb: 2,
-            fontFamily: 'Merriweather',
+            mt: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
           }}
         >
-          404
-        </Typography>
-        <Typography
-          variant="h4"
-          sx={{
-            mb: 3,
-            fontFamily: 'Merriweather',
-            color: theme.palette.text.primary,
-          }}
-        >
-          魔法が迷子になりました...
-        </Typography>
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ mb: 4, maxWidth: '80%' }}
-        >
-          申し訳ありません。お探しのページは存在しないか、
-          別の次元に移動してしまったようです。
-        </Typography>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => navigate('/')}
-          sx={{
-            px: 4,
-            py: 1.5,
-            borderRadius: 2,
-            backgroundColor: theme.palette.primary.main,
-            color: 'white',
-            '&:hover': {
-              backgroundColor: theme.palette.primary.dark,
-            },
-          }}
-        >
-          魔法学校に戻る
-        </Button>
-      </Box>
+          <Typography
+            variant="h1"
+            component="h1"
+            sx={{
+              fontSize: { xs: '6rem', sm: '8rem' },
+              fontWeight: 700,
+              color: 'primary.main',
+              mb: 2,
+            }}
+          >
+            404
+          </Typography>
+          <Typography
+            variant="h4"
+            component="h2"
+            gutterBottom
+            sx={{ mb: 3 }}
+          >
+            ページが見つかりません
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            paragraph
+            sx={{ mb: 4 }}
+          >
+            申し訳ありません。お探しのページは存在しないか、
+            移動または削除された可能性があります。
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={() => navigate('/')}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontSize: '1.1rem',
+              py: 1.5,
+              px: 4,
+            }}
+          >
+            ホームに戻る
+          </Button>
+        </Box>
+      </motion.div>
     </Container>
   );
-} 
+};
+
+export default NotFound; 
