@@ -47,10 +47,16 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const completeChallenge = (challengeId: string, points: number) => {
     if (!progress.completedChallenges.includes(challengeId)) {
-      updateProgress({
+      const updatedProgress = {
         completedChallenges: [...progress.completedChallenges, challengeId],
         totalPoints: progress.totalPoints + points,
         lastPlayedChallenge: challengeId,
+      };
+      
+      setProgress(prev => {
+        const updated = { ...prev, ...updatedProgress };
+        localStorage.setItem('gameProgress', JSON.stringify(updated));
+        return updated;
       });
     }
   };
@@ -59,7 +65,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const currentBoss = progress.bossesState[difficulty];
     const newHp = Math.max(0, currentBoss.currentHp - damage);
     
-    updateProgress({
+    const updatedBossState = {
       bossesState: {
         ...progress.bossesState,
         [difficulty]: {
@@ -67,6 +73,12 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           currentHp: newHp,
         },
       },
+    };
+    
+    setProgress(prev => {
+      const updated = { ...prev, ...updatedBossState };
+      localStorage.setItem('gameProgress', JSON.stringify(updated));
+      return updated;
     });
   };
 

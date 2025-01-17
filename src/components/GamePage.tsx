@@ -364,8 +364,10 @@ const GamePage: React.FC = () => {
 
       if (newResults.every(r => r.success) && !progress.completedChallenges.includes(selectedChallenge.id)) {
         const damage = calculateDamage(selectedChallenge.points);
-        updateBossHp(difficulty, damage);
-        completeChallenge(selectedChallenge.id, selectedChallenge.points);
+        
+        await updateBossHp(difficulty, damage);
+        
+        await completeChallenge(selectedChallenge.id, selectedChallenge.points);
         
         handleTestCaseSuccess(selectedChallenge);
       }
