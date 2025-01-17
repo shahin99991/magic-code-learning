@@ -17,23 +17,46 @@ interface RegisterCredentials {
   password: string;
 }
 
-// モックユーザーストレージ
-const mockUserStorage = new Map<string, { password: string; user: AuthResponse['user'] }>();
+interface StoredUser {
+  password: string;
+  user: AuthResponse['user'];
+}
 
-// テストユーザーの追加
-mockUserStorage.set('test@example.com', {
-  password: 'password123',
-  user: {
-    id: '1',
-    email: 'test@example.com',
-    name: 'Test User'
+// ローカルストレージからユーザー情報を読み込む
+const loadUsersFromStorage = (): Map<string, StoredUser> => {
+  const storedUsers = localStorage.getItem('users');
+  if (storedUsers) {
+    return new Map(JSON.parse(storedUsers));
   }
-});
+  return new Map();
+};
+
+// ユーザー情報をローカルストレージに保存
+const saveUsersToStorage = (users: Map<string, StoredUser>) => {
+  localStorage.setItem('users', JSON.stringify(Array.from(users.entries())));
+};
+
+// モックユーザーストレージの初期化
+const mockUserStorage = loadUsersFromStorage();
+
+// テストユーザーの追加（存在しない場合のみ）
+if (!mockUserStorage.has('test@example.com')) {
+  mockUserStorage.set('test@example.com', {
+    password: 'password123',
+    user: {
+      id: '1',
+      email: 'test@example.com',
+      name: 'Test User'
+    }
+  });
+  saveUsersToStorage(mockUserStorage);
+}
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    // モックの認証処理
-    const userRecord = mockUserStorage.get(credentials.email);
+    // 最新のユーザー情報を読み込む
+    const users = loadUsersFromStorage();
+    const userRecord = users.get(credentials.email);
     
     if (userRecord && userRecord.password === credentials.password) {
       return {
@@ -48,10 +71,12 @@ export const authApi = {
   },
 
   register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
-    // モックの登録処理
+    // 最新のユーザー情報を読み込む
+    const users = loadUsersFromStorage();
+
     if (credentials.email && credentials.password.length >= 8) {
       // 既存ユーザーチェック
-      if (mockUserStorage.has(credentials.email)) {
+      if (users.has(credentials.email)) {
         const error = new Error('このメールアドレスは既に登録されています。');
         error.name = 'RegisterError';
         throw error;
@@ -64,10 +89,11 @@ export const authApi = {
       };
 
       // ユーザー情報を保存
-      mockUserStorage.set(credentials.email, {
+      users.set(credentials.email, {
         password: credentials.password,
         user: newUser
       });
+      saveUsersToStorage(users);
 
       return {
         token: 'mock-jwt-token',
