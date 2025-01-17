@@ -14,6 +14,7 @@ interface AuthContextType {
   user: User | null;
   error: string | null;
   login: (credentials: LoginCredentials) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -22,6 +23,7 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   error: null,
   login: async () => {},
+  register: async () => {},
   logout: async () => {},
   clearError: () => {},
 });
@@ -50,6 +52,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (email: string, password: string) => {
+    try {
+      const response = await authApi.register({ email, password });
+      localStorage.setItem('token', response.token);
+      setUser(response.user);
+      setError(null);
+    } catch (err) {
+      setError('登録に失敗しました。入力内容を確認してください。');
+      throw err;
+    }
+  };
+
   const logout = async () => {
     try {
       await authApi.logout();
@@ -70,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     error,
     login,
+    register,
     logout,
     clearError,
   };
