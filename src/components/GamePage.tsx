@@ -372,6 +372,21 @@ const GamePage: React.FC = () => {
         const damage = calculateDamage(selectedChallenge.points);
         await updateBossHp(difficulty, damage);
         await completeChallenge(selectedChallenge.id, selectedChallenge.points);
+        
+        // ローカルステートの更新
+        setBossesState(prev => ({
+          ...prev,
+          [difficulty]: {
+            ...prev[difficulty],
+            currentHp: Math.max(0, prev[difficulty].currentHp - damage)
+          }
+        }));
+        
+        setCompletedChallenges(prev => [...prev, selectedChallenge.id]);
+        setTotalPoints(prev => prev + selectedChallenge.points);
+        
+        // 経験値の付与
+        handleTestCaseSuccess(selectedChallenge);
       }
     } catch (error) {
       console.error('Test execution error:', error);
@@ -458,18 +473,12 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    setTotalPoints(progress.totalPoints);
-    setCompletedChallenges(progress.completedChallenges);
-    setBossesState(progress.bossesState);
-
-    if (progress.lastPlayedChallenge) {
-      const lastChallenge = challenges[difficulty].find(c => c.id === progress.lastPlayedChallenge);
-      if (lastChallenge) {
-        setSelectedChallenge(lastChallenge);
-        setCode(lastChallenge.initialCode);
-      }
+    if (progress) {
+      setTotalPoints(progress.totalPoints);
+      setCompletedChallenges(progress.completedChallenges);
+      setBossesState(progress.bossesState);
     }
-  }, []);
+  }, [progress]);
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
