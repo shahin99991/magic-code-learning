@@ -21,15 +21,6 @@ export const executeCode = async (
     }, timeoutMs);
 
     try {
-      // 安全なコード実行環境の作成
-      const sandbox = {
-        console: {
-          log: () => {}, // コンソール出力を無効化
-        },
-        setTimeout: () => {}, // setTimeout を無効化
-        setInterval: () => {}, // setInterval を無効化
-      };
-
       // コードを実行可能な関数として評価
       let fn;
       if (code.includes('function')) {
@@ -39,18 +30,24 @@ export const executeCode = async (
           throw new Error('関数の定義が見つかりません');
         }
         const functionName = functionMatch[1];
-        const wrappedCode = `
-          ${code}
-          return ${functionName};
-        `;
-        fn = new Function(wrappedCode)();
+        
+        // グローバルスコープに関数を定義
+        const context = {};
+        new Function('context', `
+          with(context) {
+            ${code}
+            context.${functionName} = ${functionName};
+          }
+        `)(context);
+        
+        fn = context[functionName];
       } else {
         // 関数本体のみの場合は関数として包む
         fn = new Function('a', 'b', code);
       }
 
       // テストケースの実行
-      const result = fn(...testCase.input);
+      const result = fn.apply(null, testCase.input);
 
       // タイムアウトのクリア
       clearTimeout(timeoutId);
