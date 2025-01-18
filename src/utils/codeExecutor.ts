@@ -37,7 +37,7 @@ export const executeCode = async (
         fn = new Function('return ' + code)();
       } else {
         // 関数本体のみの場合は関数として包む
-        fn = new Function(...testCase.input.map((_, i) => `arg${i}`), code);
+        fn = new Function('a', 'b', code);
       }
 
       // テストケースの実行
