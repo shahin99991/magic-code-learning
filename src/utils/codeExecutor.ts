@@ -32,8 +32,13 @@ export const executeCode = async (
         const functionName = functionMatch[1];
         
         // 関数をグローバルスコープに定義して実行
-        eval(code);
-        fn = eval(functionName);
+        const context = {};
+        const wrappedCode = `
+          ${code}
+          context.fn = ${functionName};
+        `;
+        new Function('context', wrappedCode)(context);
+        fn = context.fn;
       } else {
         // 関数本体のみの場合は関数として包む
         fn = new Function(...testCase.input.map((_, i) => `arg${i}`), code);
@@ -46,9 +51,14 @@ export const executeCode = async (
       clearTimeout(timeoutId);
 
       // 結果の検証
-      const success = Array.isArray(result)
-        ? JSON.stringify(result) === JSON.stringify(testCase.expected)
-        : result === testCase.expected;
+      let success = false;
+      if (Array.isArray(testCase.expected)) {
+        success = Array.isArray(result) && 
+                 result.length === testCase.expected.length &&
+                 result.every((val, idx) => val === testCase.expected[idx]);
+      } else {
+        success = result === testCase.expected;
+      }
 
       resolve({
         success,
