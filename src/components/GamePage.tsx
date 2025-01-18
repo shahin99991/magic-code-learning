@@ -361,7 +361,7 @@ const GamePage: React.FC = () => {
       for (const testCase of selectedChallenge.testCases) {
         const result = await executeCode(code, testCase.input, testCase.expected);
         results.push(result);
-        if (!result.passed) {
+        if (!result.success) {
           allTestsPassed = false;
         }
       }
@@ -369,10 +369,9 @@ const GamePage: React.FC = () => {
       setResults(results);
 
       if (allTestsPassed) {
-        const damage = calculateDamage(selectedChallenge.difficulty, selectedChallenge.points);
-        await updateBossHp(selectedChallenge.difficulty, damage);
+        const damage = calculateDamage(selectedChallenge.points);
+        await updateBossHp(difficulty, damage);
         await completeChallenge(selectedChallenge.id, selectedChallenge.points);
-        setShowSuccessMessage(true);
       }
     } catch (error) {
       console.error('Test execution error:', error);

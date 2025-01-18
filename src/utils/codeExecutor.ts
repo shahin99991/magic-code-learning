@@ -9,7 +9,8 @@ class CodeExecutionError extends Error {
 
 export const executeCode = async (
   code: string,
-  testCase: { input: any[]; expected: any },
+  input: any[],
+  expected: any,
   timeoutMs: number = 3000
 ): Promise<{ success: boolean; message: string }> => {
   return new Promise((resolve) => {
@@ -41,30 +42,30 @@ export const executeCode = async (
         fn = context.fn;
       } else {
         // 関数本体のみの場合は関数として包む
-        fn = new Function(...testCase.input.map((_, i) => `arg${i}`), code);
+        fn = new Function(...input.map((_, i) => `arg${i}`), code);
       }
 
       // テストケースの実行
-      const result = fn(...testCase.input);
+      const result = fn(...input);
 
       // タイムアウトのクリア
       clearTimeout(timeoutId);
 
       // 結果の検証
       let success = false;
-      if (Array.isArray(testCase.expected)) {
+      if (Array.isArray(expected)) {
         success = Array.isArray(result) && 
-                 result.length === testCase.expected.length &&
-                 result.every((val, idx) => val === testCase.expected[idx]);
+                 result.length === expected.length &&
+                 result.every((val, idx) => val === expected[idx]);
       } else {
-        success = result === testCase.expected;
+        success = result === expected;
       }
 
       resolve({
         success,
         message: success
           ? '✨ テストに成功しました！'
-          : `❌ 期待値: ${JSON.stringify(testCase.expected)}, 実際の値: ${JSON.stringify(result)}`,
+          : `❌ 期待値: ${JSON.stringify(expected)}, 実際の値: ${JSON.stringify(result)}`,
       });
     } catch (error) {
       // タイムアウトのクリア
