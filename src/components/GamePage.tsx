@@ -354,30 +354,29 @@ const GamePage: React.FC = () => {
   const runTests = async () => {
     setIsRunning(true);
     setResults([]);
+    let allTestsPassed = true;
+    const results = [];
 
     try {
-      const newResults = await Promise.all(
-        selectedChallenge.testCases.map(testCase => executeCode(code, testCase))
-      );
+      for (const testCase of selectedChallenge.testCases) {
+        const result = await executeCode(code, testCase.input, testCase.expected);
+        results.push(result);
+        if (!result.passed) {
+          allTestsPassed = false;
+        }
+      }
 
-      setResults(newResults);
+      setResults(results);
 
-      if (newResults.every(r => r.success) && !progress.completedChallenges.includes(selectedChallenge.id)) {
-        const damage = calculateDamage(selectedChallenge.points);
-        
-        await updateBossHp(difficulty, damage);
-        
+      if (allTestsPassed) {
+        const damage = calculateDamage(selectedChallenge.difficulty, selectedChallenge.points);
+        await updateBossHp(selectedChallenge.difficulty, damage);
         await completeChallenge(selectedChallenge.id, selectedChallenge.points);
-        
-        handleTestCaseSuccess(selectedChallenge);
+        setShowSuccessMessage(true);
       }
     } catch (error) {
-      setResults([
-        {
-          success: false,
-          message: `❌ 予期せぬエラーが発生しました: ${error.message}`,
-        },
-      ]);
+      console.error('Test execution error:', error);
+      setResults([{ success: false, message: error.message }]);
     } finally {
       setIsRunning(false);
     }

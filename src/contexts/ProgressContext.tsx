@@ -65,18 +65,17 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const currentBoss = progress.bossesState[difficulty];
     const newHp = Math.max(0, currentBoss.currentHp - damage);
     
-    const updatedBossState = {
-      bossesState: {
-        ...progress.bossesState,
-        [difficulty]: {
-          ...currentBoss,
-          currentHp: newHp,
-        },
-      },
-    };
-    
     setProgress(prev => {
-      const updated = { ...prev, ...updatedBossState };
+      const updated = {
+        ...prev,
+        bossesState: {
+          ...prev.bossesState,
+          [difficulty]: {
+            ...prev.bossesState[difficulty],
+            currentHp: newHp,
+          },
+        },
+      };
       localStorage.setItem('gameProgress', JSON.stringify(updated));
       return updated;
     });
