@@ -31,23 +31,16 @@ export const executeCode = async (
         }
         const functionName = functionMatch[1];
         
-        // グローバルスコープに関数を定義
-        const context = {};
-        new Function('context', `
-          with(context) {
-            ${code}
-            context.${functionName} = ${functionName};
-          }
-        `)(context);
-        
-        fn = context[functionName];
+        // 関数をグローバルスコープに定義して実行
+        eval(code);
+        fn = eval(functionName);
       } else {
         // 関数本体のみの場合は関数として包む
-        fn = new Function('a', 'b', code);
+        fn = new Function(...testCase.input.map((_, i) => `arg${i}`), code);
       }
 
       // テストケースの実行
-      const result = fn.apply(null, testCase.input);
+      const result = fn(...testCase.input);
 
       // タイムアウトのクリア
       clearTimeout(timeoutId);
