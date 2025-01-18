@@ -33,10 +33,15 @@ export const executeCode = async (
       // コードを実行可能な関数として評価
       let fn;
       if (code.includes('function')) {
-        // 関数定義を含む場合はそのまま評価
+        // 関数定義を含む場合は関数名を動的に取得
+        const functionMatch = code.match(/function\s+(\w+)/);
+        if (!functionMatch) {
+          throw new Error('関数の定義が見つかりません');
+        }
+        const functionName = functionMatch[1];
         const wrappedCode = `
           ${code}
-          return magicAdd;
+          return ${functionName};
         `;
         fn = new Function(wrappedCode)();
       } else {
