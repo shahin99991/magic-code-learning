@@ -34,7 +34,11 @@ export const executeCode = async (
       let fn;
       if (code.includes('function')) {
         // 関数定義を含む場合はそのまま評価
-        fn = new Function('return ' + code)();
+        const wrappedCode = `
+          ${code}
+          return magicAdd;
+        `;
+        fn = new Function(wrappedCode)();
       } else {
         // 関数本体のみの場合は関数として包む
         fn = new Function('a', 'b', code);
