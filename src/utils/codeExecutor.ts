@@ -13,7 +13,6 @@ export const executeCode = async (
   timeoutMs: number = 3000
 ): Promise<{ success: boolean; message: string }> => {
   return new Promise((resolve) => {
-    // タイムアウトの設定
     const timeoutId = setTimeout(() => {
       resolve({
         success: false,
@@ -31,8 +30,15 @@ export const executeCode = async (
         setInterval: () => {}, // setInterval を無効化
       };
 
-      // Function コンストラクタを使用して関数を作成
-      const fn = new Function('return ' + code)();
+      // コードを実行可能な関数として評価
+      let fn;
+      if (code.includes('function')) {
+        // 関数定義を含む場合はそのまま評価
+        fn = new Function('return ' + code)();
+      } else {
+        // 関数本体のみの場合は関数として包む
+        fn = new Function(...testCase.input.map((_, i) => `arg${i}`), code);
+      }
 
       // テストケースの実行
       const result = fn(...testCase.input);
