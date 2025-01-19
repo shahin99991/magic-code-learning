@@ -65,7 +65,7 @@ const defaultBosses: Record<'easy' | 'medium' | 'hard', Boss> = {
 const GamePage: React.FC = () => {
   // Hooks and Context
   const { addExperience, currentLevel } = useLevel();
-  const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
+  const { progress, updateBossHp, resetProgress, resetDifficulty } = useProgress();
   const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
   const [playerLevel, setPlayerLevel] = useState(currentLevel);
 

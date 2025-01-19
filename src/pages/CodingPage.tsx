@@ -39,7 +39,7 @@ const MagicButton = styled(Button)`
 `;
 
 export const CodingPage: React.FC = () => {
-  const [code, setCode] = useState<string>('// Write your magical code here\nconsole.log("Hello, magical world!");\n');
+  const [code, _setCode] = useState<string>('// Write your magical code here\nconsole.log("Hello, magical world!");\n');
   const [output, setOutput] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const editorRef = useRef<HTMLDivElement>(null);
