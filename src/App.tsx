@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { AuthProvider } from './contexts/AuthContext';
 import { LevelProvider } from './contexts/LevelContext';
 import { ProgressProvider } from './contexts/ProgressContext';
+import { LearningProvider } from './contexts/LearningContext';
 import { theme } from './theme/theme';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -17,19 +18,21 @@ const App: React.FC = () => {
         <AuthProvider>
           <ProgressProvider>
             <LevelProvider>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route
-                  path="/game"
-                  element={
-                    <PrivateRoute>
-                      <GamePage />
-                    </PrivateRoute>
-                  }
-                />
-                <Route path="/" element={<Navigate to="/game" replace />} />
-              </Routes>
+              <LearningProvider>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route
+                    path="/game"
+                    element={
+                      <PrivateRoute>
+                        <GamePage />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route path="/" element={<Navigate to="/game" replace />} />
+                </Routes>
+              </LearningProvider>
             </LevelProvider>
           </ProgressProvider>
         </AuthProvider>
