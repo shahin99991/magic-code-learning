@@ -1,36 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Container, Grid } from '@mui/material';
-import { EditorView, EditorState } from '@codemirror/view';
+import { Box, Typography, Container, Grid, Button } from '@mui/material';
+import { EditorView } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
 import { javascript } from '@codemirror/lang-javascript';
+import styled from '@emotion/styled';
 
 const EditorContainer = styled(Box)`
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid #B388FF;
-  border-radius: 8px;
-  padding: 20px;
   margin: 20px 0;
-  min-height: 300px;
-  font-family: 'Source Code Pro', monospace;
-  color: #B388FF;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.1);
 `;
 
 const OutputContainer = styled(Box)`
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid #B388FF;
-  border-radius: 8px;
+  margin-top: 20px;
   padding: 20px;
-  margin: 20px 0;
-  min-height: 150px;
-  color: #E8E3F4;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  color: #B388FF;
 `;
 
 const MagicButton = styled(Button)`
-  background: linear-gradient(45deg, #6200EA 30%, #B388FF 90%);
-  color: white;
-  padding: 10px 20px;
   margin: 10px;
+  background: linear-gradient(45deg, #6200EA, #B388FF);
+  color: white;
   &:hover {
-    background: linear-gradient(45deg, #B388FF 30%, #6200EA 90%);
+    background: linear-gradient(45deg, #B388FF, #6200EA);
   }
 `;
 
