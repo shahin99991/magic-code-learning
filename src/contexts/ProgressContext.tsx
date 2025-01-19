@@ -30,14 +30,20 @@ const defaultProgress: GameProgress = {
   },
 };
 
-const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
+const ProgressContext = createContext<ProgressContextType>({
+  progress: defaultProgress,
+  updateProgress: () => {},
+  completeChallenge: () => {},
+  updateBossHp: () => {},
+  resetProgress: () => {},
+  resetDifficulty: () => {},
+});
 
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [progress, setProgress] = useState<GameProgress>(() => {
     const savedProgress = localStorage.getItem('gameProgress');
     return savedProgress ? JSON.parse(savedProgress) : defaultProgress;
   });
-  const { resetProgress: resetLevel } = useLevel();
 
   const updateProgress = (newProgress: Partial<GameProgress>) => {
     setProgress(prev => {
@@ -86,7 +92,6 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const resetProgress = () => {
     localStorage.removeItem('gameProgress');
     setProgress(defaultProgress);
-    resetLevel();
   };
 
   const resetDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
@@ -120,7 +125,13 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const savedProgress = localStorage.getItem('gameProgress');
     if (savedProgress) {
-      setProgress(JSON.parse(savedProgress));
+      try {
+        const parsed = JSON.parse(savedProgress);
+        setProgress(parsed);
+      } catch (error) {
+        console.error('Failed to parse saved progress:', error);
+        setProgress(defaultProgress);
+      }
     }
   }, []);
 
@@ -142,7 +153,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useProgress = () => {
   const context = useContext(ProgressContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useProgress must be used within a ProgressProvider');
   }
   return context;
