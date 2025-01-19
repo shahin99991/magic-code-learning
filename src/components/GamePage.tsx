@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid } from '@mui/material';
+import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import MagicBackground from './MagicBackground';
@@ -17,6 +17,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { CelebrationEffect } from './CelebrationEffect';
 import { DamageEffect } from './DamageEffect';
 import { LevelUpEffect } from './LevelUpEffect';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface Challenge {
   id: string;
@@ -830,19 +831,44 @@ const GamePage: React.FC = () => {
           {selectedChallenge && (
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                {explanation && <CodeExplanation explanation={explanation} />}
+                {explanation && (
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>コードの説明</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <CodeExplanation explanation={explanation} />
+                    </AccordionDetails>
+                  </Accordion>
+                )}
               </Grid>
               
               <Grid item xs={12}>
-                {solution && <SolutionExample solution={solution} />}
+                {solution && (
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>解答例</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <SolutionExample solution={solution} />
+                    </AccordionDetails>
+                  </Accordion>
+                )}
               </Grid>
               
               <Grid item xs={12}>
                 {hintSystem && (
-                  <HintSystem
-                    hints={hintSystem}
-                    onUnlockHint={unlockHint}
-                  />
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>ヒントシステム</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <HintSystem
+                        hints={hintSystem}
+                        onUnlockHint={unlockHint}
+                      />
+                    </AccordionDetails>
+                  </Accordion>
                 )}
               </Grid>
             </Grid>
