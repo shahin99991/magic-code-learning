@@ -460,14 +460,7 @@ const GamePage: React.FC = () => {
       expGain *= 1.25; // ヒント未使用ボーナス
     }
 
-    const prevLevel = Math.floor(Math.sqrt(totalPoints / 100));
     addExperience(Math.floor(expGain));
-    const newLevel = Math.floor(Math.sqrt((totalPoints + challenge.points) / 100));
-
-    if (newLevel > prevLevel) {
-      setCurrentLevel(newLevel);
-      setShowLevelUp(true);
-    }
   };
 
   const handleReset = () => {
@@ -525,13 +518,18 @@ const GamePage: React.FC = () => {
 
   useEffect(() => {
     if (level > currentLevel) {
-      setShowLevelUp(true);
       setCurrentLevel(level);
-      // 3秒後に自動的に非表示にする
+      setShowLevelUp(true);
+      
+      // 3秒後に確実に非表示にする
       const timer = setTimeout(() => {
         setShowLevelUp(false);
       }, 3000);
-      return () => clearTimeout(timer);
+      
+      return () => {
+        clearTimeout(timer);
+        setShowLevelUp(false);
+      };
     }
   }, [level, currentLevel]);
 
