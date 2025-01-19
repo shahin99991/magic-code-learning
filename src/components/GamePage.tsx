@@ -334,7 +334,7 @@ const GamePage: React.FC = () => {
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [bossesState, setBossesState] = useState<Record<'easy' | 'medium' | 'hard', Boss>>(bosses);
-  const { addExperience } = useLevel();
+  const { addExperience, level } = useLevel();
   const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
@@ -522,6 +522,18 @@ const GamePage: React.FC = () => {
       }
     }
   }, [selectedChallenge, setExplanation, setSolution, setHintSystem]);
+
+  useEffect(() => {
+    if (level > currentLevel) {
+      setShowLevelUp(true);
+      setCurrentLevel(level);
+      // 3秒後に自動的に非表示にする
+      const timer = setTimeout(() => {
+        setShowLevelUp(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [level, currentLevel]);
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
