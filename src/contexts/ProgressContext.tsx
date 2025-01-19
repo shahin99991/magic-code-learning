@@ -8,7 +8,7 @@ interface Progress {
 }
 
 interface ProgressContextType {
-  progress: Progress | null;
+  progress: Progress;
   completeChallenge: (challengeId: string) => void;
   updateBossHp: (difficulty: 'easy' | 'medium' | 'hard', damage: number) => Promise<void>;
   resetProgress: () => void;
@@ -62,7 +62,35 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             Array.isArray(parsed.completedChallenges) && 
             typeof parsed.totalPoints === 'number' && 
             parsed.bossesState) {
-          return parsed;
+          // Validate boss state structure
+          const isValidBossState = ['easy', 'medium', 'hard'].every(difficulty => 
+            parsed.bossesState[difficulty] && 
+            typeof parsed.bossesState[difficulty].maxHp === 'number' &&
+            typeof parsed.bossesState[difficulty].currentHp === 'number' &&
+            typeof parsed.bossesState[difficulty].name === 'string' &&
+            typeof parsed.bossesState[difficulty].image === 'string'
+          );
+          
+          if (isValidBossState) {
+            return {
+              ...parsed,
+              bossesState: {
+                ...parsed.bossesState,
+                easy: {
+                  ...defaultBosses.easy,
+                  ...parsed.bossesState.easy,
+                },
+                medium: {
+                  ...defaultBosses.medium,
+                  ...parsed.bossesState.medium,
+                },
+                hard: {
+                  ...defaultBosses.hard,
+                  ...parsed.bossesState.hard,
+                },
+              },
+            };
+          }
         }
       }
     } catch (error) {
@@ -81,14 +109,21 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const completeChallenge = (challengeId: string) => {
     if (!challengeId) return;
-    setProgress(prev => ({
-      ...prev,
-      completedChallenges: [...prev.completedChallenges, challengeId],
-    }));
+    
+    setProgress(prev => {
+      if (prev.completedChallenges.includes(challengeId)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        completedChallenges: [...prev.completedChallenges, challengeId],
+      };
+    });
   };
 
   const updateBossHp = async (difficulty: 'easy' | 'medium' | 'hard', damage: number) => {
-    if (!difficulty || typeof damage !== 'number') return;
+    if (!difficulty || typeof damage !== 'number' || damage < 0) return;
+    
     setProgress(prev => ({
       ...prev,
       bossesState: {
@@ -112,6 +147,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const resetDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
     if (!difficulty) return;
+    
     setProgress(prev => ({
       ...prev,
       bossesState: {

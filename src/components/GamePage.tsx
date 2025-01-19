@@ -360,48 +360,51 @@ const GamePage: React.FC = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
 
-  // Load initial data
+  // Load initial data with proper checks
   useEffect(() => {
-    if (progress) {
-      setTotalPoints(progress.totalPoints || 0);
-      setCompletedChallenges(progress.completedChallenges || []);
+    if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
+      setTotalPoints(progress.totalPoints);
+      setCompletedChallenges(progress.completedChallenges);
     }
   }, [progress]);
 
-  // Set initial challenge
+  // Set initial challenge with proper checks
   useEffect(() => {
-    if (!challenges || !challenges.easy || !Array.isArray(challenges.easy)) return;
-    
-    const initialChallenge = challenges.easy[0];
-    if (initialChallenge) {
-      setSelectedChallenge(initialChallenge);
-      setCode(initialChallenge.initialCode || '');
+    if (challenges && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
+      const availableChallenges = challenges[difficulty];
+      if (availableChallenges.length > 0) {
+        const initialChallenge = availableChallenges[0];
+        setSelectedChallenge(initialChallenge);
+        setCode(initialChallenge.initialCode || '');
+      }
     }
-  }, [challenges]);
+  }, [challenges, difficulty]);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
   };
 
-  const handleDifficultyChange = (event: SelectChangeEvent<string>) => {
-    const newDifficulty = event.target.value as 'easy' | 'medium' | 'hard';
-    setDifficulty(newDifficulty);
-    const availableChallenges = challenges?.[newDifficulty];
-    if (availableChallenges && Array.isArray(availableChallenges) && availableChallenges.length > 0) {
-      const firstChallenge = availableChallenges[0];
-      setSelectedChallenge(firstChallenge);
-      setCode(firstChallenge.initialCode);
+  // Handle difficulty change with proper checks
+  const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') => {
+    if (challenges && challenges[newDifficulty] && Array.isArray(challenges[newDifficulty])) {
+      setDifficulty(newDifficulty);
+      const availableChallenges = challenges[newDifficulty];
+      if (availableChallenges.length > 0) {
+        const challenge = availableChallenges[0];
+        setSelectedChallenge(challenge);
+        setCode(challenge.initialCode || '');
+      }
     }
   };
 
-  const handleChallengeChange = (event: SelectChangeEvent<string>) => {
-    const challengeId = event.target.value;
-    const availableChallenges = challenges?.[difficulty];
-    if (availableChallenges && Array.isArray(availableChallenges)) {
+  // Handle challenge change with proper checks
+  const handleChallengeChange = (challengeId: string) => {
+    if (challenges && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
+      const availableChallenges = challenges[difficulty];
       const challenge = availableChallenges.find(c => c.id === challengeId);
       if (challenge) {
         setSelectedChallenge(challenge);
-        setCode(challenge.initialCode);
+        setCode(challenge.initialCode || '');
       }
     }
   };
