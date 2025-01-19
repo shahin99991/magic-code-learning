@@ -3,24 +3,24 @@ import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { LearningProvider } from './contexts/LearningContext';
 import { LevelProvider } from './contexts/LevelContext';
 import { ProgressProvider } from './contexts/ProgressContext';
+import { LearningProvider } from './contexts/LearningContext';
 import { theme } from './theme/theme';
 
 const AllTheProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
-        <LevelProvider>
-          <ProgressProvider>
-            <LearningProvider>
-              <AuthProvider>
+        <AuthProvider>
+          <LevelProvider>
+            <ProgressProvider>
+              <LearningProvider>
                 {children}
-              </AuthProvider>
-            </LearningProvider>
-          </ProgressProvider>
-        </LevelProvider>
+              </LearningProvider>
+            </ProgressProvider>
+          </LevelProvider>
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   );
