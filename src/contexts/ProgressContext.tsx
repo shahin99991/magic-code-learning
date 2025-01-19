@@ -1,46 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Boss } from '../types/game';
-
-interface Progress {
-  completedChallenges: string[];
-  totalPoints: number;
-  bossesState: Record<'easy' | 'medium' | 'hard', Boss>;
-}
+import { Boss, Progress } from '../types/game';
 
 interface ProgressContextType {
-  progress: Progress;
-  completeChallenge: (challengeId: string) => void;
-  updateBossHp: (difficulty: 'easy' | 'medium' | 'hard', damage: number) => Promise<void>;
-  resetProgress: () => void;
-  resetDifficulty: (difficulty: 'easy' | 'medium' | 'hard') => void;
+  progress: Progress | null;
+  updateProgress: (points: number) => void;
 }
-
-const defaultBosses: Record<'easy' | 'medium' | 'hard', Boss> = {
-  easy: {
-    name: '見習い魔法使いのボス',
-    maxHp: 1000,
-    currentHp: 1000,
-    image: '🧙‍♂️',
-  },
-  medium: {
-    name: '上級魔法使いのボス',
-    maxHp: 2000,
-    currentHp: 2000,
-    image: '🧙‍♀️',
-  },
-  hard: {
-    name: '大魔法使いのボス',
-    maxHp: 3000,
-    currentHp: 3000,
-    image: '🧙‍♂️✨',
-  },
-};
-
-const defaultProgress: Progress = {
-  completedChallenges: [],
-  totalPoints: 0,
-  bossesState: defaultBosses,
-};
 
 const ProgressContext = createContext<ProgressContextType | null>(null);
 
@@ -53,7 +17,7 @@ export const useProgress = () => {
 };
 
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [progress, setProgress] = useState<Progress>(() => {
+  const [progress, setProgress] = useState<Progress | null>(() => {
     try {
       const savedProgress = localStorage.getItem('gameProgress');
       if (savedProgress) {
@@ -62,111 +26,45 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             Array.isArray(parsed.completedChallenges) && 
             typeof parsed.totalPoints === 'number' && 
             parsed.bossesState) {
-          // Validate boss state structure
-          const isValidBossState = ['easy', 'medium', 'hard'].every(difficulty => 
-            parsed.bossesState[difficulty] && 
-            typeof parsed.bossesState[difficulty].maxHp === 'number' &&
-            typeof parsed.bossesState[difficulty].currentHp === 'number' &&
-            typeof parsed.bossesState[difficulty].name === 'string' &&
-            typeof parsed.bossesState[difficulty].image === 'string'
-          );
-          
-          if (isValidBossState) {
-            return {
-              ...parsed,
-              bossesState: {
-                ...parsed.bossesState,
-                easy: {
-                  ...defaultBosses.easy,
-                  ...parsed.bossesState.easy,
-                },
-                medium: {
-                  ...defaultBosses.medium,
-                  ...parsed.bossesState.medium,
-                },
-                hard: {
-                  ...defaultBosses.hard,
-                  ...parsed.bossesState.hard,
-                },
-              },
-            };
-          }
+          return parsed;
         }
       }
     } catch (error) {
       console.error('Failed to parse saved progress:', error);
     }
-    return defaultProgress;
+    return {
+      completedChallenges: [],
+      totalPoints: 0,
+      bossesState: {
+        easy: { name: '見習い魔法使いのボス', maxHp: 1000, currentHp: 1000, image: '🧙‍♂️' },
+        medium: { name: '上級魔法使いのボス', maxHp: 2000, currentHp: 2000, image: '🧙‍♀️' },
+        hard: { name: '大魔法使いのボス', maxHp: 3000, currentHp: 3000, image: '🧙‍♂️✨' }
+      }
+    };
   });
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('gameProgress', JSON.stringify(progress));
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-    }
-  }, [progress]);
-
-  const completeChallenge = (challengeId: string) => {
-    if (!challengeId) return;
-    
+  const updateProgress = (points: number) => {
     setProgress(prev => {
-      if (prev.completedChallenges.includes(challengeId)) {
-        return prev;
-      }
+      if (!prev) return null;
       return {
         ...prev,
-        completedChallenges: [...prev.completedChallenges, challengeId],
+        totalPoints: prev.totalPoints + points
       };
     });
   };
 
-  const updateBossHp = async (difficulty: 'easy' | 'medium' | 'hard', damage: number) => {
-    if (!difficulty || typeof damage !== 'number' || damage < 0) return;
-    
-    setProgress(prev => ({
-      ...prev,
-      bossesState: {
-        ...prev.bossesState,
-        [difficulty]: {
-          ...prev.bossesState[difficulty],
-          currentHp: Math.max(0, prev.bossesState[difficulty].currentHp - damage),
-        },
-      },
-    }));
-  };
-
-  const resetProgress = () => {
-    setProgress(defaultProgress);
-    try {
-      localStorage.removeItem('gameProgress');
-    } catch (error) {
-      console.error('Failed to reset progress:', error);
+  useEffect(() => {
+    if (progress) {
+      try {
+        localStorage.setItem('gameProgress', JSON.stringify(progress));
+      } catch (error) {
+        console.error('Failed to save progress:', error);
+      }
     }
-  };
-
-  const resetDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
-    if (!difficulty) return;
-    
-    setProgress(prev => ({
-      ...prev,
-      bossesState: {
-        ...prev.bossesState,
-        [difficulty]: defaultBosses[difficulty],
-      },
-    }));
-  };
-
-  const value = {
-    progress,
-    completeChallenge,
-    updateBossHp,
-    resetProgress,
-    resetDifficulty,
-  };
+  }, [progress]);
 
   return (
-    <ProgressContext.Provider value={value}>
+    <ProgressContext.Provider value={{ progress, updateProgress }}>
       {children}
     </ProgressContext.Provider>
   );
