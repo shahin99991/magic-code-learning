@@ -1,59 +1,57 @@
 import React from 'react';
-import { Box, Typography, Paper, Divider } from '@mui/material';
-import { CodeExplanation as CodeExplanationType } from '../types/explanation';
+import { Box, Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
 
 interface CodeExplanationProps {
-  explanation: CodeExplanationType;
+  explanation: {
+    lineByLine: string[];
+    concepts: string[];
+    tips: string[];
+  };
 }
 
 export const CodeExplanation: React.FC<CodeExplanationProps> = ({ explanation }) => {
   return (
-    <Paper elevation={3} sx={{ p: 2, my: 2 }}>
+    <Box>
       <Typography variant="h6" gutterBottom>
         コードの解説
       </Typography>
-      <Divider sx={{ my: 1 }} />
       
-      {/* 行ごとの解説 */}
-      <Box sx={{ mt: 2 }}>
-        {explanation.lineByLineExplanation.map((line) => (
-          <Box key={line.lineNumber} sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" color="primary">
-              {`行 ${line.lineNumber}:`}
-            </Typography>
-            <Typography variant="body2" sx={{ ml: 2 }}>
-              {line.explanation}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 2, display: 'block' }}>
-              概念: {line.concept}
-            </Typography>
-          </Box>
+      <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+        行ごとの説明:
+      </Typography>
+      <List>
+        {explanation.lineByLine.map((line, index) => (
+          <ListItem key={index}>
+            <ListItemText primary={line} />
+          </ListItem>
         ))}
-      </Box>
+      </List>
 
-      {/* 使用されている概念 */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1">使用されている概念:</Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-          {explanation.conceptsUsed.map((concept, index) => (
-            <Paper key={index} variant="outlined" sx={{ px: 1, py: 0.5 }}>
-              <Typography variant="body2">{concept}</Typography>
-            </Paper>
-          ))}
-        </Box>
-      </Box>
+      <Divider sx={{ my: 2 }} />
 
-      {/* Tips */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1">Tips:</Typography>
-        <ul>
-          {explanation.tips.map((tip, index) => (
-            <li key={index}>
-              <Typography variant="body2">{tip}</Typography>
-            </li>
-          ))}
-        </ul>
-      </Box>
-    </Paper>
+      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+        使用される概念:
+      </Typography>
+      <List>
+        {explanation.concepts.map((concept, index) => (
+          <ListItem key={index}>
+            <ListItemText primary={concept} />
+          </ListItem>
+        ))}
+      </List>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+        Tips:
+      </Typography>
+      <List>
+        {explanation.tips.map((tip, index) => (
+          <ListItem key={index}>
+            <ListItemText primary={`💡 ${tip}`} />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
   );
 }; 

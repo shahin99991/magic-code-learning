@@ -1,89 +1,67 @@
-import React from 'react';
-import { Box, Typography, Paper, Button, Chip, Divider } from '@mui/material';
-import { HintSystem as HintSystemType } from '../types/hint';
-import { useLevel } from '../contexts/LevelContext';
+import React, { useState } from 'react';
+import { Box, Typography, Button, Chip, Stack } from '@mui/material';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
 interface HintSystemProps {
-  hints: HintSystemType;
-  onUnlockHint: (hintId: string) => void;
+  hints: Array<{
+    level: number;
+    content: string;
+    cost: number;
+  }>;
 }
 
-export const HintSystem: React.FC<HintSystemProps> = ({ hints, onUnlockHint }) => {
-  const { currentExp } = useLevel();
+export const HintSystem: React.FC<HintSystemProps> = ({ hints }) => {
+  const [unlockedHints, setUnlockedHints] = useState<number[]>([]);
 
-  const getHintLevelColor = (level: string) => {
-    switch (level) {
-      case 'basic':
-        return 'success';
-      case 'intermediate':
-        return 'warning';
-      case 'advanced':
-        return 'error';
-      default:
-        return 'default';
+  const handleUnlockHint = (level: number) => {
+    if (!unlockedHints.includes(level)) {
+      setUnlockedHints([...unlockedHints, level]);
     }
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 2, my: 2 }}>
+    <Box>
       <Typography variant="h6" gutterBottom>
         ヒントシステム
       </Typography>
-      <Divider sx={{ my: 1 }} />
 
-      <Box sx={{ mt: 2 }}>
-        {hints.hints.map((hint, index) => {
-          const isUnlocked = hints.unlockedHints.includes(String(index));
-          const canUnlock = currentExp >= hint.unlockCost;
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        ヒントを見ることでポイントが減少します。自力での解決を目指してください。
+      </Typography>
 
-          return (
-            <Box key={index} sx={{ mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Chip
-                  label={`ヒント ${index + 1}`}
-                  color={getHintLevelColor(hint.level)}
-                  size="small"
-                />
-                {!isUnlocked && (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    disabled={!canUnlock}
-                    onClick={() => onUnlockHint(String(index))}
-                  >
-                    {`${hint.unlockCost} EXPで解放`}
-                  </Button>
-                )}
-              </Box>
-
-              {isUnlocked ? (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2">
-                    {hint.content}
-                  </Typography>
-                  {hint.code && (
-                    <Paper variant="outlined" sx={{ p: 1, mt: 1, bgcolor: 'grey.100' }}>
-                      <Typography variant="body2" component="pre" sx={{ fontFamily: 'monospace' }}>
-                        {hint.code}
-                      </Typography>
-                    </Paper>
-                  )}
-                </Box>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  {canUnlock ? 'クリックして解放' : '必要な経験値が不足しています'}
-                </Typography>
-              )}
+      <Stack spacing={2}>
+        {hints.map((hint, index) => (
+          <Box key={index} sx={{ border: 1, borderColor: 'divider', p: 2, borderRadius: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="subtitle1">
+                ヒント {hint.level}
+              </Typography>
+              <Chip
+                icon={<LightbulbIcon />}
+                label={`コスト: ${hint.cost}ポイント`}
+                color="primary"
+                variant="outlined"
+                size="small"
+              />
             </Box>
-          );
-        })}
-      </Box>
-
-      <Box sx={{ mt: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          {`解放済みヒント: ${hints.unlockedHints.length} / ${hints.totalHints}`}
-        </Typography>
-      </Box>
-    </Paper>
+            
+            {unlockedHints.includes(hint.level) ? (
+              <Typography variant="body1">
+                {hint.content}
+              </Typography>
+            ) : (
+              <Button
+                variant="outlined"
+                color="primary"
+                fullWidth
+                onClick={() => handleUnlockHint(hint.level)}
+              >
+                ヒントを表示
+              </Button>
+            )}
+          </Box>
+        ))}
+      </Stack>
+    </Box>
   );
 }; 

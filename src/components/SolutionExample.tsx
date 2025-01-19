@@ -1,92 +1,74 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Divider, Button, Collapse } from '@mui/material';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { materialDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { SolutionExample as SolutionExampleType } from '../types/solution';
+import React from 'react';
+import { Box, Typography, Divider } from '@mui/material';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
+import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+
+SyntaxHighlighter.registerLanguage('javascript', js);
 
 interface SolutionExampleProps {
-  solution: SolutionExampleType;
+  solution: {
+    code: string;
+    explanation: string;
+    complexity: {
+      time: string;
+      space: string;
+    };
+    alternatives: Array<{
+      description: string;
+      code: string;
+    }>;
+  };
 }
 
 export const SolutionExample: React.FC<SolutionExampleProps> = ({ solution }) => {
-  const [showSolution, setShowSolution] = useState(false);
-
   return (
-    <Paper elevation={3} sx={{ p: 2, my: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" gutterBottom>
-          模範解答
-        </Typography>
-        <Button 
-          variant="outlined" 
-          onClick={() => setShowSolution(!showSolution)}
-        >
-          {showSolution ? '解答を隠す' : '解答を表示'}
-        </Button>
-      </Box>
-      <Divider sx={{ my: 1 }} />
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        解答例
+      </Typography>
 
-      <Collapse in={showSolution}>
-        {/* コード */}
-        <Box sx={{ mt: 2 }}>
-          <SyntaxHighlighter language="javascript" style={materialDark}>
-            {solution.code}
+      <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+        コード:
+      </Typography>
+      <SyntaxHighlighter language="javascript" style={docco}>
+        {solution.code}
+      </SyntaxHighlighter>
+
+      <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+        説明:
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        {solution.explanation}
+      </Typography>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+        計算量:
+      </Typography>
+      <Typography variant="body1">
+        時間計算量: {solution.complexity.time}
+      </Typography>
+      <Typography variant="body1" sx={{ mb: 2 }}>
+        空間計算量: {solution.complexity.space}
+      </Typography>
+
+      <Divider sx={{ my: 2 }} />
+
+      <Typography variant="subtitle1" sx={{ mb: 1 }}>
+        別解:
+      </Typography>
+      {solution.alternatives.map((alt, index) => (
+        <Box key={index} sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            {alt.description}
+          </Typography>
+          <SyntaxHighlighter language="javascript" style={docco}>
+            {alt.code}
           </SyntaxHighlighter>
         </Box>
-
-        {/* 解説 */}
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">解説:</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            {solution.explanation}
-          </Typography>
-        </Box>
-
-        {/* 計算量 */}
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">計算量:</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            時間計算量: {solution.complexity.time}
-          </Typography>
-          <Typography variant="body2">
-            空間計算量: {solution.complexity.space}
-          </Typography>
-        </Box>
-
-        {/* 代替アプローチ */}
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">代替アプローチ:</Typography>
-          {solution.alternativeApproaches.map((approach, index) => (
-            <Box key={index} sx={{ mt: 1 }}>
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                アプローチ {index + 1}: {approach.description}
-              </Typography>
-              <Box sx={{ ml: 2 }}>
-                <Typography variant="body2" color="success.main">
-                  メリット:
-                </Typography>
-                <ul>
-                  {approach.pros.map((pro, i) => (
-                    <li key={i}>
-                      <Typography variant="body2">{pro}</Typography>
-                    </li>
-                  ))}
-                </ul>
-                <Typography variant="body2" color="error.main">
-                  デメリット:
-                </Typography>
-                <ul>
-                  {approach.cons.map((con, i) => (
-                    <li key={i}>
-                      <Typography variant="body2">{con}</Typography>
-                    </li>
-                  ))}
-                </ul>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      </Collapse>
-    </Paper>
+      ))}
+    </Box>
   );
 }; 

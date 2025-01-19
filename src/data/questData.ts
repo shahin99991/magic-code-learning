@@ -2,6 +2,33 @@ import { CodeExplanation } from '../types/explanation';
 import { SolutionExample } from '../types/solution';
 import { HintSystem } from '../types/hint';
 
+interface CodeExplanation {
+  lineByLine: string[];
+  concepts: string[];
+  tips: string[];
+}
+
+interface SolutionExample {
+  code: string;
+  explanation: string;
+  complexity: {
+    time: string;
+    space: string;
+  };
+  alternatives: {
+    code: string;
+    explanation: string;
+  }[];
+}
+
+interface HintSystem {
+  hints: {
+    content: string;
+    cost: number;
+    unlocked: boolean;
+  }[];
+}
+
 interface QuestLearningData {
   id: string;
   explanation: CodeExplanation;
@@ -9,71 +36,63 @@ interface QuestLearningData {
   hints: HintSystem;
 }
 
-export const questLearningData: Record<string, QuestLearningData> = {
-  'quest-1': {
-    id: 'quest-1',
+const questLearningData: Record<string, QuestLearningData> = {
+  '1': {
+    id: '1',
     explanation: {
-      lineByLineExplanation: [
-        {
-          lineNumber: 1,
-          explanation: '2つの数値を受け取る関数を定義します',
-          concept: '関数定義'
-        },
-        {
-          lineNumber: 2,
-          explanation: '受け取った2つの数値を加算して返します',
-          concept: '算術演算子'
-        }
+      lineByLine: [
+        'function magicAdd(a, b) { ... } - 2つの数値を受け取る関数を定義します',
+        'return a + b; - 受け取った2つの数値を加算して結果を返します'
       ],
-      conceptsUsed: ['関数', '引数', '戻り値', '加算演算子'],
+      concepts: [
+        '関数定義 - 特定の処理をまとめて再利用可能にします',
+        'パラメータ - 関数に渡される値を表します',
+        '加算演算子 (+) - 2つの値を足し合わせます',
+        'return文 - 関数の結果を呼び出し元に返します'
+      ],
       tips: [
-        '引数の型を意識しましょう',
-        '戻り値の型も確認しましょう',
-        'シンプルな実装を心がけましょう'
+        '引数の型は自動的に数値として扱われます',
+        '加算演算子は最も基本的な算術演算子の1つです',
+        '結果は新しい数値として返されます'
       ]
     },
     solution: {
-      code: 'function magicAdd(a: number, b: number): number {\n  return a + b;\n}',
-      explanation: '2つの数値を受け取り、その和を返す最もシンプルな実装です。TypeScriptの型アノテーションを使用して、引数と戻り値の型を明示的に指定しています。',
+      code: `function magicAdd(a, b) {
+  return a + b;
+}`,
+      explanation: '2つの数値を受け取り、加算演算子を使って合計を計算します。シンプルで直接的なアプローチです。',
       complexity: {
-        time: 'O(1)',
-        space: 'O(1)'
+        time: 'O(1) - 定数時間で実行されます',
+        space: 'O(1) - 追加のメモリを使用しません'
       },
-      alternativeApproaches: [
+      alternatives: [
         {
-          description: '再帰を使用する方法',
-          pros: ['理解が深まる', '加算の仕組みを学べる'],
-          cons: ['パフォーマンスが悪い', '実装が複雑になる']
-        },
-        {
-          description: 'ビット演算を使用する方法',
-          pros: ['低レベルの理解が深まる'],
-          cons: ['可読性が低下する', '負の数の処理が複雑']
+          code: `function magicAdd(a, b) {
+  let sum = a + b;
+          return sum;
+}`,
+          explanation: '一時変数を使用する方法。可読性は高いですが、この場合は冗長かもしれません。'
         }
       ]
     },
     hints: {
       hints: [
         {
-          level: 'basic',
-          content: '2つの数値を足し合わせることを考えてみましょう',
-          unlockCost: 50
+          content: '2つの数を足すには + 演算子を使います',
+          cost: 10,
+          unlocked: false
         },
         {
-          level: 'intermediate',
-          content: 'JavaScriptの + 演算子を使用します',
-          unlockCost: 100,
-          code: 'let result = a + b;'
+          content: 'return文を使って結果を返すことを忘れないでください',
+          cost: 20,
+          unlocked: false
         },
         {
-          level: 'advanced',
-          content: '型の安全性を考慮してTypeScriptの型アノテーションを使用します',
-          unlockCost: 150,
-          code: 'function add(a: number, b: number): number'
+          content: '完全な解答例: return a + b;',
+          cost: 50,
+          unlocked: false
         }
-      ],
-      unlockedHints: [],
-      totalHints: 3
+      ]
     }
   },
   // 他のクエストデータをここに追加
