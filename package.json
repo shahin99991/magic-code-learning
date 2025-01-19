@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "jest",
-    "vercel-build": "npm run build",
+    "vercel-build": "vite build",
     "clean": "rm -rf dist",
     "postinstall": "npm run build"
   },
