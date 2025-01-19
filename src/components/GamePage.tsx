@@ -41,292 +41,294 @@ interface Boss {
   image: string;
 }
 
-const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
-  easy: [
-    {
-      id: '1',
-      title: '魔法の数字（足し算）',
-      description: '与えられた2つの数字を足し算する魔法の関数を完成させましょう！',
-      difficulty: 'easy',
-      points: 100,
-      hint: '+ 演算子を使って2つの数を足し合わせましょう',
-      initialCode: `function magicAdd(a, b) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [1, 2], expected: 3 },
-        { input: [5, 3], expected: 8 },
-        { input: [10, -5], expected: 5 },
-      ],
-    },
-    {
-      id: '2',
-      title: '魔法の数字（掛け算）',
-      description: '2つの数字を掛け合わせる魔法の関数を作りましょう！',
-      difficulty: 'easy',
-      points: 150,
-      hint: '* 演算子を使って2つの数を掛け合わせましょう',
-      initialCode: `function magicMultiply(a, b) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [2, 3], expected: 6 },
-        { input: [4, 5], expected: 20 },
-        { input: [-2, 3], expected: -6 },
-      ],
-    },
-    {
-      id: '3',
-      title: '魔法の文字列',
-      description: '2つの文字列を結合する魔法の関数を作りましょう！',
-      difficulty: 'easy',
-      points: 120,
-      hint: '+ 演算子または concat() メソッドを使って文字列を結合できます',
-      initialCode: `function magicConcat(str1, str2) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: ['Hello', 'World'], expected: 'HelloWorld' },
-        { input: ['Magic', 'Spell'], expected: 'MagicSpell' },
-        { input: ['', 'Test'], expected: 'Test' },
-      ],
-    },
-    {
-      id: '10',
-      title: '魔法の文字変換',
-      description: '文字列を大文字に変換する魔法の関数を作りましょう！',
-      difficulty: 'easy',
-      points: 130,
-      hint: 'toUpperCase() メソッドを使うと文字列を大文字に変換できます',
-      initialCode: `function magicUpperCase(text) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: ['hello'], expected: 'HELLO' },
-        { input: ['Magic'], expected: 'MAGIC' },
-        { input: ['JavaScript'], expected: 'JAVASCRIPT' },
-      ],
-    },
-    {
-      id: '11',
-      title: '魔法の長さ測定',
-      description: '文字列の長さを計測する魔法の関数を作りましょう！',
-      difficulty: 'easy',
-      points: 110,
-      hint: 'length プロパティを使うと文字列の長さを取得できます',
-      initialCode: `function magicLength(text) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: ['hello'], expected: 5 },
-        { input: [''], expected: 0 },
-        { input: ['魔法'], expected: 2 },
-      ],
-    },
-  ],
-  medium: [
-    {
-      id: '4',
-      title: '魔法の配列（合計）',
-      description: '配列の中の数字を全て足し合わせる魔法の関数を作りましょう！',
-      difficulty: 'medium',
-      points: 200,
-      hint: 'reduce メソッドを使うと配列の要素を集約できます',
-      initialCode: `function magicSum(numbers) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [[1, 2, 3]], expected: 6 },
-        { input: [[5, -2, 7, 0]], expected: 10 },
-        { input: [[]], expected: 0 },
-      ],
-    },
-    {
-      id: '5',
-      title: '魔法の配列（最大値）',
-      description: '配列の中から最大の数を見つける魔法の関数を作りましょう！',
-      difficulty: 'medium',
-      points: 250,
-      hint: 'Math.max() と spread 演算子を組み合わせると便利です',
-      initialCode: `function magicMax(numbers) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [[1, 5, 3]], expected: 5 },
-        { input: [[-1, -5, -3]], expected: -1 },
-        { input: [[0]], expected: 0 },
-      ],
-    },
-    {
-      id: '6',
-      title: '魔法のフィルター',
-      description: '配列から偶数のみを抽出する魔法の関数を作りましょう！',
-      difficulty: 'medium',
-      points: 230,
-      hint: 'filter メソッドと剰余演算子(%)を使うとよいでしょう',
-      initialCode: `function magicFilter(numbers) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [[1, 2, 3, 4]], expected: [2, 4] },
-        { input: [[5, 7, 9]], expected: [] },
-        { input: [[2, 4, 6]], expected: [2, 4, 6] },
-      ],
-    },
-    {
-      id: '12',
-      title: '魔法の配列（重複除去）',
-      description: '配列から重複する要素を取り除く魔法の関数を作りましょう！',
-      difficulty: 'medium',
-      points: 220,
-      hint: 'Set オブジェクトを使うと重複を簡単に除去できます',
-      initialCode: `function magicUnique(numbers) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [[1, 2, 2, 3, 3, 4]], expected: [1, 2, 3, 4] },
-        { input: [[5, 5, 5]], expected: [5] },
-        { input: [[1, 2, 3]], expected: [1, 2, 3] },
-      ],
-    },
-    {
-      id: '13',
-      title: '魔法の平均値',
-      description: '配列の平均値を計算する魔法の関数を作りましょう！',
-      difficulty: 'medium',
-      points: 240,
-      hint: '合計を要素数で割ると平均値が求められます',
-      initialCode: `function magicAverage(numbers) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [[1, 2, 3]], expected: 2 },
-        { input: [[10, 20, 30, 40]], expected: 25 },
-        { input: [[0, 0, 0]], expected: 0 },
-      ],
-    },
-  ],
-  hard: [
-    {
-      id: '7',
-      title: '魔法の回文',
-      description: '与えられた文字列が回文かどうかを判定する魔法の関数を作りましょう！',
-      difficulty: 'hard',
-      points: 300,
-      hint: '文字列を反転させて比較すると判定できます',
-      initialCode: `function magicPalindrome(text) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: ['level'], expected: true },
-        { input: ['hello'], expected: false },
-        { input: [''], expected: true },
-      ],
-    },
-    {
-      id: '8',
-      title: '魔法のソート',
-      description: '数字の配列を小さい順に並び替える魔法の関数を作りましょう！',
-      difficulty: 'hard',
-      points: 350,
-      hint: 'バブルソートやクイックソートなどのアルゴリズムを実装してみましょう',
-      initialCode: `function magicSort(numbers) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [[3, 1, 4]], expected: [1, 3, 4] },
-        { input: [[5, 2, 8, 1]], expected: [1, 2, 5, 8] },
-        { input: [[]], expected: [] },
-      ],
-    },
-    {
-      id: '9',
-      title: '魔法のアナグラム',
-      description: '2つの文字列がアナグラムかどうかを判定する魔法の関数を作りましょう！',
-      difficulty: 'hard',
-      points: 400,
-      hint: '文字列をソートして比較すると判定できます',
-      initialCode: `function magicAnagram(str1, str2) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: ['listen', 'silent'], expected: true },
-        { input: ['hello', 'world'], expected: false },
-        { input: ['', ''], expected: true },
-      ],
-    },
-    {
-      id: '14',
-      title: '魔法の文字列圧縮',
-      description: '連続する文字を圧縮する魔法の関数を作りましょう！例：aabbbcccc → a2b3c4',
-      difficulty: 'hard',
-      points: 380,
-      hint: '文字の出現回数をカウントして、文字と数字を組み合わせましょう',
-      initialCode: `function magicCompress(text) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: ['aabbbcccc'], expected: 'a2b3c4' },
-        { input: ['aaa'], expected: 'a3' },
-        { input: ['abcd'], expected: 'a1b1c1d1' },
-      ],
-    },
-    {
-      id: '15',
-      title: '魔法の階段',
-      description: '数値nを受け取り、n段の階段パターンを作る魔法の関数を作りましょう！',
-      difficulty: 'hard',
-      points: 420,
-      hint: '文字列の繰り返しとループを組み合わせて階段を作りましょう',
-      initialCode: `function magicStairs(n) {
-  // ここにコードを書いてください
-  
-}`,
-      testCases: [
-        { input: [3], expected: ['  *', ' **', '***'] },
-        { input: [1], expected: ['*'] },
-        { input: [2], expected: [' *', '**'] },
-      ],
-    },
-  ],
-}), []);
-
-const bosses: Record<'easy' | 'medium' | 'hard', Boss> = {
-  easy: {
-    name: '見習い魔法使いのボス',
-    maxHp: 1000,
-    currentHp: 1000,
-    image: '🧙‍♂️',
-  },
-  medium: {
-    name: '上級魔法使いのボス',
-    maxHp: 2000,
-    currentHp: 2000,
-    image: '🧙‍♀️',
-  },
-  hard: {
-    name: '大魔法使いのボス',
-    maxHp: 3000,
-    currentHp: 3000,
-    image: '🧙‍♂️✨',
-  },
-};
-
 const GamePage: React.FC = () => {
+  // challengesの定義
+  const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
+    easy: [
+      {
+        id: '1',
+        title: '魔法の数字（足し算）',
+        description: '与えられた2つの数字を足し算する魔法の関数を完成させましょう！',
+        difficulty: 'easy',
+        points: 100,
+        hint: '+ 演算子を使って2つの数を足し合わせましょう',
+        initialCode: `function magicAdd(a, b) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [1, 2], expected: 3 },
+          { input: [5, 3], expected: 8 },
+          { input: [10, -5], expected: 5 },
+        ],
+      },
+      {
+        id: '2',
+        title: '魔法の数字（掛け算）',
+        description: '2つの数字を掛け合わせる魔法の関数を作りましょう！',
+        difficulty: 'easy',
+        points: 150,
+        hint: '* 演算子を使って2つの数を掛け合わせましょう',
+        initialCode: `function magicMultiply(a, b) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [2, 3], expected: 6 },
+          { input: [4, 5], expected: 20 },
+          { input: [-2, 3], expected: -6 },
+        ],
+      },
+      {
+        id: '3',
+        title: '魔法の文字列',
+        description: '2つの文字列を結合する魔法の関数を作りましょう！',
+        difficulty: 'easy',
+        points: 120,
+        hint: '+ 演算子または concat() メソッドを使って文字列を結合できます',
+        initialCode: `function magicConcat(str1, str2) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: ['Hello', 'World'], expected: 'HelloWorld' },
+          { input: ['Magic', 'Spell'], expected: 'MagicSpell' },
+          { input: ['', 'Test'], expected: 'Test' },
+        ],
+      },
+      {
+        id: '10',
+        title: '魔法の文字変換',
+        description: '文字列を大文字に変換する魔法の関数を作りましょう！',
+        difficulty: 'easy',
+        points: 130,
+        hint: 'toUpperCase() メソッドを使うと文字列を大文字に変換できます',
+        initialCode: `function magicUpperCase(text) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: ['hello'], expected: 'HELLO' },
+          { input: ['Magic'], expected: 'MAGIC' },
+          { input: ['JavaScript'], expected: 'JAVASCRIPT' },
+        ],
+      },
+      {
+        id: '11',
+        title: '魔法の長さ測定',
+        description: '文字列の長さを計測する魔法の関数を作りましょう！',
+        difficulty: 'easy',
+        points: 110,
+        hint: 'length プロパティを使うと文字列の長さを取得できます',
+        initialCode: `function magicLength(text) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: ['hello'], expected: 5 },
+          { input: [''], expected: 0 },
+          { input: ['魔法'], expected: 2 },
+        ],
+      },
+    ],
+    medium: [
+      {
+        id: '4',
+        title: '魔法の配列（合計）',
+        description: '配列の中の数字を全て足し合わせる魔法の関数を作りましょう！',
+        difficulty: 'medium',
+        points: 200,
+        hint: 'reduce メソッドを使うと配列の要素を集約できます',
+        initialCode: `function magicSum(numbers) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [[1, 2, 3]], expected: 6 },
+          { input: [[5, -2, 7, 0]], expected: 10 },
+          { input: [[]], expected: 0 },
+        ],
+      },
+      {
+        id: '5',
+        title: '魔法の配列（最大値）',
+        description: '配列の中から最大の数を見つける魔法の関数を作りましょう！',
+        difficulty: 'medium',
+        points: 250,
+        hint: 'Math.max() と spread 演算子を組み合わせると便利です',
+        initialCode: `function magicMax(numbers) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [[1, 5, 3]], expected: 5 },
+          { input: [[-1, -5, -3]], expected: -1 },
+          { input: [[0]], expected: 0 },
+        ],
+      },
+      {
+        id: '6',
+        title: '魔法のフィルター',
+        description: '配列から偶数のみを抽出する魔法の関数を作りましょう！',
+        difficulty: 'medium',
+        points: 230,
+        hint: 'filter メソッドと剰余演算子(%)を使うとよいでしょう',
+        initialCode: `function magicFilter(numbers) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [[1, 2, 3, 4]], expected: [2, 4] },
+          { input: [[5, 7, 9]], expected: [] },
+          { input: [[2, 4, 6]], expected: [2, 4, 6] },
+        ],
+      },
+      {
+        id: '12',
+        title: '魔法の配列（重複除去）',
+        description: '配列から重複する要素を取り除く魔法の関数を作りましょう！',
+        difficulty: 'medium',
+        points: 220,
+        hint: 'Set オブジェクトを使うと重複を簡単に除去できます',
+        initialCode: `function magicUnique(numbers) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [[1, 2, 2, 3, 3, 4]], expected: [1, 2, 3, 4] },
+          { input: [[5, 5, 5]], expected: [5] },
+          { input: [[1, 2, 3]], expected: [1, 2, 3] },
+        ],
+      },
+      {
+        id: '13',
+        title: '魔法の平均値',
+        description: '配列の平均値を計算する魔法の関数を作りましょう！',
+        difficulty: 'medium',
+        points: 240,
+        hint: '合計を要素数で割ると平均値が求められます',
+        initialCode: `function magicAverage(numbers) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [[1, 2, 3]], expected: 2 },
+          { input: [[10, 20, 30, 40]], expected: 25 },
+          { input: [[0, 0, 0]], expected: 0 },
+        ],
+      },
+    ],
+    hard: [
+      {
+        id: '7',
+        title: '魔法の回文',
+        description: '与えられた文字列が回文かどうかを判定する魔法の関数を作りましょう！',
+        difficulty: 'hard',
+        points: 300,
+        hint: '文字列を反転させて比較すると判定できます',
+        initialCode: `function magicPalindrome(text) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: ['level'], expected: true },
+          { input: ['hello'], expected: false },
+          { input: [''], expected: true },
+        ],
+      },
+      {
+        id: '8',
+        title: '魔法のソート',
+        description: '数字の配列を小さい順に並び替える魔法の関数を作りましょう！',
+        difficulty: 'hard',
+        points: 350,
+        hint: 'バブルソートやクイックソートなどのアルゴリズムを実装してみましょう',
+        initialCode: `function magicSort(numbers) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [[3, 1, 4]], expected: [1, 3, 4] },
+          { input: [[5, 2, 8, 1]], expected: [1, 2, 5, 8] },
+          { input: [[]], expected: [] },
+        ],
+      },
+      {
+        id: '9',
+        title: '魔法のアナグラム',
+        description: '2つの文字列がアナグラムかどうかを判定する魔法の関数を作りましょう！',
+        difficulty: 'hard',
+        points: 400,
+        hint: '文字列をソートして比較すると判定できます',
+        initialCode: `function magicAnagram(str1, str2) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: ['listen', 'silent'], expected: true },
+          { input: ['hello', 'world'], expected: false },
+          { input: ['', ''], expected: true },
+        ],
+      },
+      {
+        id: '14',
+        title: '魔法の文字列圧縮',
+        description: '連続する文字を圧縮する魔法の関数を作りましょう！例：aabbbcccc → a2b3c4',
+        difficulty: 'hard',
+        points: 380,
+        hint: '文字の出現回数をカウントして、文字と数字を組み合わせましょう',
+        initialCode: `function magicCompress(text) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: ['aabbbcccc'], expected: 'a2b3c4' },
+          { input: ['aaa'], expected: 'a3' },
+          { input: ['abcd'], expected: 'a1b1c1d1' },
+        ],
+      },
+      {
+        id: '15',
+        title: '魔法の階段',
+        description: '数値nを受け取り、n段の階段パターンを作る魔法の関数を作りましょう！',
+        difficulty: 'hard',
+        points: 420,
+        hint: '文字列の繰り返しとループを組み合わせて階段を作りましょう',
+        initialCode: `function magicStairs(n) {
+  // ここにコードを書いてください
+  
+}`,
+        testCases: [
+          { input: [3], expected: ['  *', ' **', '***'] },
+          { input: [1], expected: ['*'] },
+          { input: [2], expected: [' *', '**'] },
+        ],
+      },
+    ],
+  }), []);
+
+  // bossesの定義をコンポーネント内に移動し、useMemoで最適化
+  const bosses = useMemo<Record<'easy' | 'medium' | 'hard', Boss>>(() => ({
+    easy: {
+      name: '見習い魔法使いのボス',
+      maxHp: 1000,
+      currentHp: 1000,
+      image: '🧙‍♂️',
+    },
+    medium: {
+      name: '上級魔法使いのボス',
+      maxHp: 2000,
+      currentHp: 2000,
+      image: '🧙‍♀️',
+    },
+    hard: {
+      name: '大魔法使いのボス',
+      maxHp: 3000,
+      currentHp: 3000,
+      image: '🧙‍♂️✨',
+    },
+  }), []);
+
   // 初期状態の定義
   const initialDifficulty: 'easy' | 'medium' | 'hard' = 'easy';
   const initialChallenge = challenges[initialDifficulty]?.[0] || null;
