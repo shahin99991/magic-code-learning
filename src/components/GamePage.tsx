@@ -343,8 +343,8 @@ const GamePage: React.FC = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDamage, setShowDamage] = useState(false);
   const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
-  const [showLevelUp, setShowLevelUp] = useState(false);
   const [currentLevel, setCurrentLevel] = useState(1);
+  const [showLevelUp, setShowLevelUp] = useState(false);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
@@ -751,7 +751,7 @@ const GamePage: React.FC = () => {
                 {result.message}
               </Typography>
             ))}
-            {results.every(r => r.success) && !progress.completedChallenges.includes(selectedChallenge.id) && (
+            {results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge.id) && (
               <>
                 <Typography variant="h6" color="success.main">
                   🎉 おめでとうございます！{selectedChallenge.points}ポイント獲得しました！
