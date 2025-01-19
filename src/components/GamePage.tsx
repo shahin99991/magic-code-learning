@@ -370,13 +370,16 @@ const GamePage: React.FC = () => {
 
   // Set initial challenge with proper checks
   useEffect(() => {
-    if (challenges && difficulty && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
-      const availableChallenges = challenges[difficulty];
-      if (availableChallenges && availableChallenges.length > 0) {
-        const initialChallenge = availableChallenges[0];
-        setSelectedChallenge(initialChallenge);
-        setCode(initialChallenge.initialCode || '');
-      }
+    if (!challenges || !difficulty || !challenges[difficulty]) {
+      console.error('Required data not initialized');
+      return;
+    }
+
+    const availableChallenges = challenges[difficulty];
+    if (availableChallenges && availableChallenges.length > 0) {
+      const initialChallenge = availableChallenges[0];
+      setSelectedChallenge(initialChallenge);
+      setCode(initialChallenge.initialCode || '');
     }
   }, [challenges, difficulty]);
 
@@ -386,27 +389,33 @@ const GamePage: React.FC = () => {
 
   // Handle difficulty change with proper checks
   const handleDifficultyChange = (event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
-    if (challenges && newDifficulty && challenges[newDifficulty] && Array.isArray(challenges[newDifficulty])) {
-      setDifficulty(newDifficulty);
-      const availableChallenges = challenges[newDifficulty];
-      if (availableChallenges && availableChallenges.length > 0) {
-        const challenge = availableChallenges[0];
-        setSelectedChallenge(challenge);
-        setCode(challenge.initialCode || '');
-      }
+    if (!challenges || !challenges[newDifficulty]) {
+      console.error('Challenges not properly initialized');
+      return;
+    }
+
+    setDifficulty(newDifficulty);
+    const availableChallenges = challenges[newDifficulty];
+    if (availableChallenges && availableChallenges.length > 0) {
+      const challenge = availableChallenges[0];
+      setSelectedChallenge(challenge);
+      setCode(challenge.initialCode || '');
     }
   };
 
   // Handle challenge change with proper checks
   const handleChallengeChange = (event: SelectChangeEvent<string>) => {
     const challengeId = event.target.value;
-    if (challenges && difficulty && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
-      const availableChallenges = challenges[difficulty];
-      const challenge = availableChallenges.find(c => c.id === challengeId);
-      if (challenge) {
-        setSelectedChallenge(challenge);
-        setCode(challenge.initialCode || '');
-      }
+    if (!challenges || !challenges[difficulty]) {
+      console.error('Challenges not properly initialized');
+      return;
+    }
+
+    const availableChallenges = challenges[difficulty];
+    const challenge = availableChallenges.find(c => c.id === challengeId);
+    if (challenge) {
+      setSelectedChallenge(challenge);
+      setCode(challenge.initialCode || '');
     }
   };
 
@@ -694,7 +703,7 @@ const GamePage: React.FC = () => {
               onChange={handleChallengeChange}
               label="Challenge"
             >
-              {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) ? 
+              {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) && 
                 challenges[difficulty].map((challenge) => (
                   <MenuItem
                     key={challenge.id}
@@ -703,7 +712,7 @@ const GamePage: React.FC = () => {
                   >
                     {challenge.title} {progress?.completedChallenges?.includes(challenge.id) ? '(Completed)' : ''}
                   </MenuItem>
-                )) : null}
+                ))}
             </Select>
           </FormControl>
           <Typography variant="h6" color="primary">
