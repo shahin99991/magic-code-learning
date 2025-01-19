@@ -512,7 +512,7 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (progress) {
+    if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
       setTotalPoints(progress.totalPoints);
       setCompletedChallenges(progress.completedChallenges);
       setBossesState(progress.bossesState);
