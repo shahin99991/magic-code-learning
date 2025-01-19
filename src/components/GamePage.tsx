@@ -42,7 +42,12 @@ interface Boss {
 }
 
 const GamePage: React.FC = () => {
-  // challengesの定義
+  // Hooks and Context
+  const { addExperience, level } = useLevel();
+  const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
+  const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
+
+  // Memoized Data
   const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
     easy: [
       {
@@ -307,7 +312,6 @@ const GamePage: React.FC = () => {
     ],
   }), []);
 
-  // bossesの定義をコンポーネント内に移動し、useMemoで最適化
   const bosses = useMemo<Record<'easy' | 'medium' | 'hard', Boss>>(() => ({
     easy: {
       name: '見習い魔法使いのボス',
@@ -329,11 +333,11 @@ const GamePage: React.FC = () => {
     },
   }), []);
 
-  // 初期状態の定義
+  // Initial State
   const initialDifficulty: 'easy' | 'medium' | 'hard' = 'easy';
   const initialChallenge = challenges[initialDifficulty]?.[0] || null;
 
-  // 状態の初期化
+  // State
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(initialDifficulty);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(initialChallenge);
   const [code, setCode] = useState(initialChallenge?.initialCode || '');
@@ -343,18 +347,15 @@ const GamePage: React.FC = () => {
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [bossesState, setBossesState] = useState<Record<'easy' | 'medium' | 'hard', Boss>>(bosses);
-  const { addExperience, level } = useLevel();
-  const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
-  const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDamage, setShowDamage] = useState(false);
   const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
   const [currentLevel, setCurrentLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
 
-  // 初期データの読み込み
+  // Initial Data Load
   useEffect(() => {
     if (progress) {
       setTotalPoints(progress.totalPoints);
