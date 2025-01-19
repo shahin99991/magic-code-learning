@@ -370,9 +370,9 @@ const GamePage: React.FC = () => {
 
   // Set initial challenge with proper checks
   useEffect(() => {
-    if (challenges && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
+    if (challenges && difficulty && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
       const availableChallenges = challenges[difficulty];
-      if (availableChallenges.length > 0) {
+      if (availableChallenges && availableChallenges.length > 0) {
         const initialChallenge = availableChallenges[0];
         setSelectedChallenge(initialChallenge);
         setCode(initialChallenge.initialCode || '');
@@ -385,11 +385,11 @@ const GamePage: React.FC = () => {
   };
 
   // Handle difficulty change with proper checks
-  const handleDifficultyChange = (newDifficulty: 'easy' | 'medium' | 'hard') => {
-    if (challenges && challenges[newDifficulty] && Array.isArray(challenges[newDifficulty])) {
+  const handleDifficultyChange = (event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
+    if (challenges && newDifficulty && challenges[newDifficulty] && Array.isArray(challenges[newDifficulty])) {
       setDifficulty(newDifficulty);
       const availableChallenges = challenges[newDifficulty];
-      if (availableChallenges.length > 0) {
+      if (availableChallenges && availableChallenges.length > 0) {
         const challenge = availableChallenges[0];
         setSelectedChallenge(challenge);
         setCode(challenge.initialCode || '');
@@ -398,8 +398,9 @@ const GamePage: React.FC = () => {
   };
 
   // Handle challenge change with proper checks
-  const handleChallengeChange = (challengeId: string) => {
-    if (challenges && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
+  const handleChallengeChange = (event: SelectChangeEvent<string>) => {
+    const challengeId = event.target.value;
+    if (challenges && difficulty && challenges[difficulty] && Array.isArray(challenges[difficulty])) {
       const availableChallenges = challenges[difficulty];
       const challenge = availableChallenges.find(c => c.id === challengeId);
       if (challenge) {
@@ -690,7 +691,7 @@ const GamePage: React.FC = () => {
             <InputLabel>Challenge</InputLabel>
             <Select
               value={selectedChallenge?.id || ''}
-              onChange={(event: SelectChangeEvent<string>) => handleChallengeChange(event.target.value)}
+              onChange={handleChallengeChange}
               label="Challenge"
             >
               {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) ? 
