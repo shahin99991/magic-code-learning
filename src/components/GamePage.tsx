@@ -327,8 +327,8 @@ const bosses: Record<'easy' | 'medium' | 'hard', Boss> = {
 
 const GamePage: React.FC = () => {
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
-  const [selectedChallenge, setSelectedChallenge] = useState<Challenge>(challenges.easy[0]);
-  const [code, setCode] = useState(challenges.easy[0].initialCode);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [code, setCode] = useState('');
   const [results, setResults] = useState<{ success: boolean; message: string }[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
@@ -346,25 +346,38 @@ const GamePage: React.FC = () => {
   const [currentLevel, setCurrentLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
 
+  useEffect(() => {
+    if (challenges && challenges.easy && challenges.easy[0]) {
+      setSelectedChallenge(challenges.easy[0]);
+      setCode(challenges.easy[0].initialCode);
+    }
+  }, []);
+
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
   };
 
   const handleDifficultyChange = (_: React.SyntheticEvent, newDifficulty: 'easy' | 'medium' | 'hard') => {
     setDifficulty(newDifficulty);
-    const firstChallenge = challenges[newDifficulty][0];
-    setSelectedChallenge(firstChallenge);
-    setCode(firstChallenge.initialCode);
-    setResults([]);
-    setShowHint(false);
+    if (challenges[newDifficulty] && challenges[newDifficulty][0]) {
+      const firstChallenge = challenges[newDifficulty][0];
+      setSelectedChallenge(firstChallenge);
+      setCode(firstChallenge.initialCode);
+      setResults([]);
+      setShowHint(false);
+    }
   };
 
   const handleChallengeChange = (challengeId: string) => {
-    const challenge = challenges[difficulty].find(c => c.id === challengeId)!;
-    setSelectedChallenge(challenge);
-    setCode(challenge.initialCode);
-    setResults([]);
-    setShowHint(false);
+    if (challenges[difficulty]) {
+      const challenge = challenges[difficulty].find(c => c.id === challengeId);
+      if (challenge) {
+        setSelectedChallenge(challenge);
+        setCode(challenge.initialCode);
+        setResults([]);
+        setShowHint(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -387,7 +400,7 @@ const GamePage: React.FC = () => {
     const results = [];
 
     try {
-      for (const testCase of selectedChallenge.testCases) {
+      for (const testCase of selectedChallenge!.testCases) {
         const result = await executeCode(code, testCase.input, testCase.expected);
         results.push(result);
         if (!result.success) {
@@ -398,7 +411,7 @@ const GamePage: React.FC = () => {
       setResults(results);
 
       if (allTestsPassed) {
-        const damage = calculateDamage(selectedChallenge.points);
+        const damage = calculateDamage(selectedChallenge!.points);
         
         // ダメージエフェクトの位置を設定
         const bossElement = document.querySelector('.boss-image');
@@ -422,11 +435,11 @@ const GamePage: React.FC = () => {
           }
         }));
         
-        setCompletedChallenges(prev => [...prev, selectedChallenge.id]);
-        setTotalPoints(prev => prev + selectedChallenge.points);
+        setCompletedChallenges(prev => [...prev, selectedChallenge!.id]);
+        setTotalPoints(prev => prev + selectedChallenge!.points);
         
         // 経験値の付与と演出
-        handleTestCaseSuccess(selectedChallenge);
+        handleTestCaseSuccess(selectedChallenge!);
         setShowCelebration(true);
       }
     } catch (error) {
@@ -655,7 +668,7 @@ const GamePage: React.FC = () => {
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>問題を選択</InputLabel>
             <Select
-              value={selectedChallenge.id}
+              value={selectedChallenge?.id || ''}
               onChange={(e) => handleChallengeChange(e.target.value)}
               label="問題を選択"
             >
@@ -674,21 +687,21 @@ const GamePage: React.FC = () => {
         <Paper elevation={3} sx={{ p: 3, mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h4" component="h1">
-              {selectedChallenge.title}
+              {selectedChallenge?.title}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="body2" color="textSecondary">
-                難易度: {selectedChallenge.difficulty}
+                難易度: {selectedChallenge?.difficulty}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                ポイント: {selectedChallenge.points}
+                ポイント: {selectedChallenge?.points}
               </Typography>
             </Box>
           </Box>
           <Typography variant="body1" paragraph>
-            {selectedChallenge.description}
+            {selectedChallenge?.description}
           </Typography>
-          {selectedChallenge.hint && (
+          {selectedChallenge?.hint && (
             <Box sx={{ mt: 2 }}>
               <Button
                 variant="outlined"
@@ -751,13 +764,13 @@ const GamePage: React.FC = () => {
                 {result.message}
               </Typography>
             ))}
-            {results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge.id) && (
+            {results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge?.id || '') && (
               <>
                 <Typography variant="h6" color="success.main">
-                  🎉 おめでとうございます！{selectedChallenge.points}ポイント獲得しました！
+                  🎉 おめでとうございます！{selectedChallenge?.points}ポイント獲得しました！
                 </Typography>
                 <Typography variant="body1" color="success.main">
-                  ボスに{calculateDamage(selectedChallenge.points)}ダメージを与えました！
+                  ボスに{calculateDamage(selectedChallenge?.points || 0)}ダメージを与えました！
                 </Typography>
                 {bossesState[difficulty].currentHp === 0 && (
                   <Typography variant="h5" color="success.main" sx={{ mt: 2 }}>
