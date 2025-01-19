@@ -3,11 +3,6 @@ import { Box, Typography, Button, Container, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 
-const GlowingText = styled(Typography)`
-  text-shadow: 0 0 10px #B388FF, 0 0 20px #6200EA;
-  margin-bottom: 2rem;
-`;
-
 const MagicCard = styled(Box)`
   background: rgba(98, 0, 234, 0.1);
   backdrop-filter: blur(10px);

@@ -424,7 +424,7 @@ const GamePage: React.FC = () => {
   };
 
   // Handle difficulty change with proper checks
-  const handleDifficultyChange = (event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
+  const handleDifficultyChange = (_event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
     if (!challenges || !challenges[newDifficulty]) {
       console.error('Challenges not properly initialized');
       return;

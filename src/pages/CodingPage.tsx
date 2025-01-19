@@ -39,7 +39,7 @@ const MagicButton = styled(Button)`
 `;
 
 export const CodingPage: React.FC = () => {
-  const [code, setCode] = useState<string>('// Write your magical code here\nconsole.log("Hello, magical world!");\n');
+  const [_code, setCode] = useState<string>('// Write your magical code here\nconsole.log("Hello, magical world!");\n');
   const [output, setOutput] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -85,7 +85,6 @@ export const CodingPage: React.FC = () => {
     setOutput('Casting your magical spell...\n');
     
     try {
-      const wasmFs = new WasmFs();
       let output = '';
 
       // カスタムconsole.logの実装

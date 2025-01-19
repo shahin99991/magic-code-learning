@@ -1,17 +1,3 @@
-import { Challenge } from '../types/game';
-
-class CodeExecutionError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'CodeExecutionError';
-  }
-}
-
-interface SandboxContext {
-  [key: string]: unknown;
-  fn?: Function;
-}
-
 export const executeCode = async (
   code: string,
   input: any[] = [],
@@ -26,9 +12,8 @@ export const executeCode = async (
       });
     }, timeoutMs);
 
-    let errorMessage = '';
     try {
-      const context: SandboxContext = {};
+      const context: { [key: string]: unknown } = {};
       const wrappedCode = `
         ${code}
         context.fn = ${code.trim()};
@@ -59,9 +44,7 @@ export const executeCode = async (
         throw new Error('Function is not properly defined');
       }
     } catch (error: unknown) {
-      // タイムアウトのクリア
       clearTimeout(timeoutId);
-
       if (error instanceof Error) {
         console.error('Code execution error:', error.message);
         throw error;
