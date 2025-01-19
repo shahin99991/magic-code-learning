@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import MagicBackground from './MagicBackground';
@@ -8,6 +8,15 @@ import { useLevel } from '../contexts/LevelContext';
 import LevelDisplay from './LevelDisplay';
 import { useProgress } from '../contexts/ProgressContext';
 import { executeCode } from '../utils/codeExecutor';
+import { CodeExplanation } from './CodeExplanation';
+import { SolutionExample } from './SolutionExample';
+import { HintSystem } from './HintSystem';
+import { useLearning } from '../contexts/LearningContext';
+import { getQuestLearningData } from '../data/questData';
+import { LoadingSpinner } from './LoadingSpinner';
+import { CelebrationEffect } from './CelebrationEffect';
+import { DamageEffect } from './DamageEffect';
+import { LevelUpEffect } from './LevelUpEffect';
 
 interface Challenge {
   id: string;
@@ -329,6 +338,12 @@ const GamePage: React.FC = () => {
   const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
+  const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showDamage, setShowDamage] = useState(false);
+  const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [currentLevel, setCurrentLevel] = useState(1);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
@@ -370,8 +385,19 @@ const GamePage: React.FC = () => {
 
       if (allTestsPassed) {
         const damage = calculateDamage(selectedChallenge.points);
+        
+        // ダメージエフェクトの位置を設定
+        const bossElement = document.querySelector('.boss-image');
+        if (bossElement) {
+          const rect = bossElement.getBoundingClientRect();
+          setDamagePosition({
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+          });
+        }
+        
+        setShowDamage(true);
         await updateBossHp(difficulty, damage);
-        await completeChallenge(selectedChallenge.id, selectedChallenge.points);
         
         // ローカルステートの更新
         setBossesState(prev => ({
@@ -385,8 +411,9 @@ const GamePage: React.FC = () => {
         setCompletedChallenges(prev => [...prev, selectedChallenge.id]);
         setTotalPoints(prev => prev + selectedChallenge.points);
         
-        // 経験値の付与
+        // 経験値の付与と演出
         handleTestCaseSuccess(selectedChallenge);
+        setShowCelebration(true);
       }
     } catch (error) {
       console.error('Test execution error:', error);
@@ -433,9 +460,14 @@ const GamePage: React.FC = () => {
       expGain *= 1.25; // ヒント未使用ボーナス
     }
 
+    const prevLevel = Math.floor(Math.sqrt(totalPoints / 100));
     addExperience(Math.floor(expGain));
+    const newLevel = Math.floor(Math.sqrt((totalPoints + challenge.points) / 100));
 
-    // ... existing success handling code ...
+    if (newLevel > prevLevel) {
+      setCurrentLevel(newLevel);
+      setShowLevelUp(true);
+    }
   };
 
   const handleReset = () => {
@@ -480,12 +512,46 @@ const GamePage: React.FC = () => {
     }
   }, [progress]);
 
+  useEffect(() => {
+    if (selectedChallenge) {
+      const learningData = getQuestLearningData(selectedChallenge.id);
+      if (learningData) {
+        setExplanation(learningData.explanation);
+        setSolution(learningData.solution);
+        setHintSystem(learningData.hints);
+      }
+    }
+  }, [selectedChallenge, setExplanation, setSolution, setHintSystem]);
+
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       <MagicBackground />
       <MagicParticles />
       <LevelDisplay />
       
+      {/* アニメーションコンポーネント */}
+      {isRunning && <LoadingSpinner />}
+      
+      <CelebrationEffect
+        show={showCelebration}
+        message="クエスト完了！"
+        points={selectedChallenge?.points || 0}
+        onComplete={() => setShowCelebration(false)}
+      />
+      
+      <DamageEffect
+        show={showDamage}
+        damage={calculateDamage(selectedChallenge?.points || 0)}
+        position={damagePosition}
+        onComplete={() => setShowDamage(false)}
+      />
+      
+      <LevelUpEffect
+        show={showLevelUp}
+        level={currentLevel}
+        onComplete={() => setShowLevelUp(false)}
+      />
+
       <Container maxWidth="lg" sx={{ pt: 4, pb: 4 }}>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Typography 
@@ -731,6 +797,34 @@ const GamePage: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* 学習支援機能の追加 */}
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            学習サポート
+          </Typography>
+          
+          {selectedChallenge && (
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                {explanation && <CodeExplanation explanation={explanation} />}
+              </Grid>
+              
+              <Grid item xs={12}>
+                {solution && <SolutionExample solution={solution} />}
+              </Grid>
+              
+              <Grid item xs={12}>
+                {hintSystem && (
+                  <HintSystem
+                    hints={hintSystem}
+                    onUnlockHint={unlockHint}
+                  />
+                )}
+              </Grid>
+            </Grid>
+          )}
+        </Box>
       </Container>
     </Box>
   );
