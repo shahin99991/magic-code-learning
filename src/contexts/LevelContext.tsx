@@ -24,12 +24,35 @@ export const getTitleForLevel = (level: number): string => {
   return "魔法見習生";
 };
 
+// LocalStorageのキー
+const LEVEL_DATA_KEY = 'magicCodeLearning_levelData';
+
+// LocalStorageから経験値データを読み込む
+const loadLevelData = () => {
+  const savedData = localStorage.getItem(LEVEL_DATA_KEY);
+  if (savedData) {
+    return JSON.parse(savedData);
+  }
+  return null;
+};
+
+// LocalStorageに経験値データを保存
+const saveLevelData = (data: {
+  currentExp: number;
+  currentLevel: number;
+  totalExp: number;
+}) => {
+  localStorage.setItem(LEVEL_DATA_KEY, JSON.stringify(data));
+};
+
 export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentExp, setCurrentExp] = useState(0);
-  const [currentLevel, setCurrentLevel] = useState(1);
-  const [expToNextLevel, setExpToNextLevel] = useState(calculateExpForNextLevel(1));
-  const [totalExp, setTotalExp] = useState(0);
-  const [currentTitle, setCurrentTitle] = useState(getTitleForLevel(1));
+  // 初期値の設定（LocalStorageから読み込むか、デフォルト値を使用）
+  const savedData = loadLevelData();
+  const [currentExp, setCurrentExp] = useState(savedData?.currentExp ?? 0);
+  const [currentLevel, setCurrentLevel] = useState(savedData?.currentLevel ?? 1);
+  const [totalExp, setTotalExp] = useState(savedData?.totalExp ?? 0);
+  const [expToNextLevel, setExpToNextLevel] = useState(calculateExpForNextLevel(savedData?.currentLevel ?? 1));
+  const [currentTitle, setCurrentTitle] = useState(getTitleForLevel(savedData?.currentLevel ?? 1));
 
   const checkLevelUp = () => {
     if (currentExp >= expToNextLevel) {
@@ -38,7 +61,6 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentExp(currentExp - expToNextLevel);
       setExpToNextLevel(calculateExpForNextLevel(newLevel));
       setCurrentTitle(getTitleForLevel(newLevel));
-      // TODO: レベルアップ時のアニメーションや報酬の処理
     }
   };
 
@@ -46,6 +68,15 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCurrentExp(prev => prev + amount);
     setTotalExp(prev => prev + amount);
   };
+
+  // 経験値データの変更を監視してLocalStorageに保存
+  useEffect(() => {
+    saveLevelData({
+      currentExp,
+      currentLevel,
+      totalExp,
+    });
+  }, [currentExp, currentLevel, totalExp]);
 
   useEffect(() => {
     checkLevelUp();
@@ -70,7 +101,7 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export const useLevel = () => {
   const context = useContext(LevelContext);
   if (context === undefined) {
-    throw new Error('useLevel must be used within a LevelProvider');
+    throw new Error('useLevelは LevelProvider 内で使用する必要があります');
   }
   return context;
 }; 
