@@ -1,8 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 interface LevelContextType {
   level: number;
   experience: number;
+  currentExp: number;
+  currentLevel: number;
+  expToNextLevel: number;
+  currentTitle: string;
   addExperience: (amount: number) => void;
 }
 
@@ -20,6 +24,11 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [level, setLevel] = useState(1);
   const [experience, setExperience] = useState(0);
 
+  const expToNextLevel = level * 1000;
+  const currentExp = experience;
+  const currentLevel = level;
+  const currentTitle = getTitleForLevel(level);
+
   const addExperience = (amount: number) => {
     setExperience(prev => {
       const newExp = prev + amount;
@@ -33,8 +42,26 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <LevelContext.Provider value={{ level, experience, addExperience }}>
+    <LevelContext.Provider 
+      value={{ 
+        level, 
+        experience, 
+        currentExp,
+        currentLevel,
+        expToNextLevel,
+        currentTitle,
+        addExperience 
+      }}
+    >
       {children}
     </LevelContext.Provider>
   );
-}; 
+};
+
+function getTitleForLevel(level: number): string {
+  if (level < 5) return '見習い魔法使い';
+  if (level < 10) return '初級魔法使い';
+  if (level < 15) return '中級魔法使い';
+  if (level < 20) return '上級魔法使い';
+  return '大魔法使い';
+} 

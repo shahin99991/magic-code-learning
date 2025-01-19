@@ -1,9 +1,15 @@
+interface ExecuteCodeResult {
+  success: boolean;
+  message: string;
+  actual?: any;
+}
+
 export const executeCode = async (
   code: string,
   input: any[] = [],
   expected: any,
   timeoutMs: number = 3000
-): Promise<{ success: boolean; message: string }> => {
+): Promise<ExecuteCodeResult> => {
   return new Promise((resolve) => {
     const timeoutId = setTimeout(() => {
       resolve({
@@ -22,23 +28,24 @@ export const executeCode = async (
       eval(wrappedCode);
       
       if (typeof context.fn === 'function') {
-        const result = context.fn(...input);
+        const actual = context.fn(...input);
 
         // 結果の検証
         let success = false;
         if (Array.isArray(expected)) {
-          success = Array.isArray(result) && 
-                   result.length === expected.length &&
-                   result.every((val, idx) => val === expected[idx]);
+          success = Array.isArray(actual) && 
+                   actual.length === expected.length &&
+                   actual.every((val, idx) => val === expected[idx]);
         } else {
-          success = result === expected;
+          success = actual === expected;
         }
 
         resolve({
           success,
           message: success
             ? '✨ テストに成功しました！'
-            : `❌ 期待値: ${JSON.stringify(expected)}, 実際の値: ${JSON.stringify(result)}`,
+            : `❌ 期待値: ${JSON.stringify(expected)}, 実際の値: ${JSON.stringify(actual)}`,
+          actual,
         });
       } else {
         throw new Error('Function is not properly defined');

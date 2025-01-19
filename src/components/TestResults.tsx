@@ -4,6 +4,8 @@ import { Box, Typography, CircularProgress } from '@mui/material';
 interface TestCase {
   input: any[];
   expected: any;
+  actual?: any;
+  passed?: boolean;
 }
 
 interface TestResult {
@@ -44,7 +46,7 @@ const TestResults: React.FC<TestResultsProps> = ({ code, testCases, onSuccess, s
               return {
                 input: testCase.input,
                 expected: testCase.expected,
-                actual: error.message,
+                actual: error instanceof Error ? error.message : 'Unknown error',
                 passed: false,
               };
             }

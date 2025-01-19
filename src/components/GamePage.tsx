@@ -1,28 +1,35 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
+import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import MagicBackground from './MagicBackground';
 import MagicParticles from './MagicParticles';
 import { useLevel } from '../contexts/LevelContext';
 import LevelDisplay from './LevelDisplay';
 import { useProgress } from '../contexts/ProgressContext';
 import { executeCode } from '../utils/codeExecutor';
+import { LoadingSpinner } from './LoadingSpinner';
+import { CelebrationEffect } from './CelebrationEffect';
+import { DamageEffect } from './DamageEffect';
+import { LevelUpEffect } from './LevelUpEffect';
+import { Boss, Challenge } from '../types/game';
+import CodeEditor from './CodeEditor';
 import { CodeExplanation } from './CodeExplanation';
 import { SolutionExample } from './SolutionExample';
 import { HintSystem } from './HintSystem';
 import { useLearning } from '../contexts/LearningContext';
 import { getQuestLearningData } from '../data/questData';
-import { LoadingSpinner } from './LoadingSpinner';
-import { CelebrationEffect } from './CelebrationEffect';
-import { DamageEffect } from './DamageEffect';
-import { LevelUpEffect } from './LevelUpEffect';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { ExpandMoreIcon } from '@mui/icons-material';
 import { SelectChangeEvent } from '@mui/material';
-import { Boss, Challenge } from '../types/game';
-import CodeEditor from './CodeEditor';
 import TestResults from './TestResults';
 import BossDisplay from './BossDisplay';
+
+interface TestResult {
+  input: any[];
+  expected: any;
+  actual: any;
+  passed: boolean;
+  success?: boolean;
+  message?: string;
+}
 
 interface GamePageProps {}
 
@@ -310,7 +317,7 @@ const GamePage: React.FC<GamePageProps> = () => {
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [code, setCode] = useState('');
-  const [results, setResults] = useState<{ input: any[]; expected: any; actual: any; passed: boolean }[]>([]);
+  const [results, setResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
@@ -365,11 +372,10 @@ const GamePage: React.FC<GamePageProps> = () => {
   };
 
   // Handle difficulty change with proper checks
-  const handleDifficultyChange = (event: SelectChangeEvent<string>) => {
-    const newDifficulty = event.target.value as 'easy' | 'medium' | 'hard';
-    setDifficulty(newDifficulty);
+  const handleDifficultyChange = (event: React.SyntheticEvent, newValue: string) => {
+    setDifficulty(newValue as 'easy' | 'medium' | 'hard');
     
-    const availableChallenges = challenges[newDifficulty];
+    const availableChallenges = challenges[newValue as 'easy' | 'medium' | 'hard'];
     if (availableChallenges && availableChallenges.length > 0) {
       const challenge = availableChallenges[0];
       setSelectedChallenge(challenge);
@@ -405,27 +411,45 @@ const GamePage: React.FC<GamePageProps> = () => {
     }
   }, [showCelebration]);
 
+  const handleError = (error: unknown): TestResult => {
+    return {
+      input: [],
+      expected: null,
+      actual: error instanceof Error ? error.message : 'Unknown error',
+      passed: false,
+      success: false,
+      message: error instanceof Error ? error.message : 'An unknown error occurred'
+    };
+  };
+
   const runTests = async () => {
     setIsRunning(true);
     setResults([]);
     let allTestsPassed = true;
-    const results = [];
+    const testResults: TestResult[] = [];
 
     try {
       for (const testCase of selectedChallenge!.testCases) {
         const result = await executeCode(code, testCase.input, testCase.expected);
-        results.push(result);
+        const testResult: TestResult = {
+          input: testCase.input,
+          expected: testCase.expected,
+          actual: result.success ? result.actual : result.message,
+          passed: result.success,
+          success: result.success,
+          message: result.message
+        };
+        testResults.push(testResult);
         if (!result.success) {
           allTestsPassed = false;
         }
       }
 
-      setResults(results);
+      setResults(testResults);
 
       if (allTestsPassed) {
         const damage = calculateDamage(selectedChallenge!.points);
         
-        // ダメージエフェクトの位置を設定
         const bossElement = document.querySelector('.boss-image');
         if (bossElement) {
           const rect = bossElement.getBoundingClientRect();
@@ -438,7 +462,6 @@ const GamePage: React.FC<GamePageProps> = () => {
         setShowDamage(true);
         await updateProgress(damage);
         
-        // ローカルステートの更新
         setBossesState(prev => ({
           ...prev,
           [difficulty]: {
@@ -450,16 +473,11 @@ const GamePage: React.FC<GamePageProps> = () => {
         setCompletedChallenges(prev => [...prev, selectedChallenge!.id]);
         setTotalPoints(prev => prev + selectedChallenge!.points);
         
-        // 経験値の付与と演出
         handleTestCaseSuccess();
         setShowCelebration(true);
       }
     } catch (error) {
-      if (error instanceof Error) {
-        setResults([{ success: false, message: error.message }]);
-      } else {
-        setResults([{ success: false, message: 'An unknown error occurred' }]);
-      }
+      setResults([handleError(error)]);
     } finally {
       setIsRunning(false);
     }
