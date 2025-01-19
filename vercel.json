@@ -1,4 +1,7 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "routes": [
     {
       "src": "/static/(.*)",
@@ -8,18 +11,15 @@
       "continue": true
     },
     {
-      "src": "/[^.]+",
-      "dest": "/",
-      "status": 200
-    }
-  ],
-  "builds": [
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "github": {
