@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
@@ -18,6 +18,7 @@ import { CelebrationEffect } from './CelebrationEffect';
 import { DamageEffect } from './DamageEffect';
 import { LevelUpEffect } from './LevelUpEffect';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { SelectChangeEvent } from '@mui/material';
 
 interface Challenge {
   id: string;
@@ -40,7 +41,7 @@ interface Boss {
   image: string;
 }
 
-const challenges: Record<'easy' | 'medium' | 'hard', Challenge[]> = {
+const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
   easy: [
     {
       id: '1',
@@ -302,7 +303,7 @@ const challenges: Record<'easy' | 'medium' | 'hard', Challenge[]> = {
       ],
     },
   ],
-};
+}), []);
 
 const bosses: Record<'easy' | 'medium' | 'hard', Boss> = {
   easy: {
@@ -326,9 +327,14 @@ const bosses: Record<'easy' | 'medium' | 'hard', Boss> = {
 };
 
 const GamePage: React.FC = () => {
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
-  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
-  const [code, setCode] = useState('');
+  // 初期状態の定義
+  const initialDifficulty: 'easy' | 'medium' | 'hard' = 'easy';
+  const initialChallenge = challenges[initialDifficulty]?.[0] || null;
+
+  // 状態の初期化
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(initialDifficulty);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(initialChallenge);
+  const [code, setCode] = useState(initialChallenge?.initialCode || '');
   const [results, setResults] = useState<{ success: boolean; message: string }[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
@@ -346,45 +352,54 @@ const GamePage: React.FC = () => {
   const [currentLevel, setCurrentLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
 
+  // 初期データの読み込み
   useEffect(() => {
-    if (challenges && 
-        challenges.easy && 
-        Array.isArray(challenges.easy) && 
-        challenges.easy.length > 0) {
-      const initialChallenge = challenges.easy[0];
-      setSelectedChallenge(initialChallenge);
-      setCode(initialChallenge.initialCode);
+    if (progress) {
+      setTotalPoints(progress.totalPoints);
+      setCompletedChallenges(progress.completedChallenges);
+      setBossesState(progress.bossesState);
     }
-  }, []);
+  }, [progress]);
+
+  useEffect(() => {
+    if (!progress || !challenges) return;
+    
+    const difficulty = progress.completedChallenges.length === 0 ? 'easy' : 
+      progress.completedChallenges.length < 5 ? 'medium' : 'hard';
+    
+    const availableChallenges = challenges[difficulty];
+    if (!availableChallenges || !Array.isArray(availableChallenges)) return;
+    
+    const uncompletedChallenge = availableChallenges.find(
+      challenge => !progress.completedChallenges.includes(challenge.id)
+    );
+    
+    if (uncompletedChallenge) {
+      setSelectedChallenge(uncompletedChallenge);
+      setDifficulty(difficulty);
+    }
+  }, [progress, challenges]);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
   };
 
-  const handleDifficultyChange = (_: React.SyntheticEvent, newDifficulty: 'easy' | 'medium' | 'hard') => {
+  const handleDifficultyChange = (event: SelectChangeEvent<string>) => {
+    const newDifficulty = event.target.value as 'easy' | 'medium' | 'hard';
     setDifficulty(newDifficulty);
-    if (challenges && 
-        challenges[newDifficulty] && 
-        Array.isArray(challenges[newDifficulty]) && 
-        challenges[newDifficulty].length > 0) {
-      const firstChallenge = challenges[newDifficulty][0];
-      setSelectedChallenge(firstChallenge);
-      setCode(firstChallenge.initialCode);
-      setResults([]);
-      setShowHint(false);
+    const availableChallenges = challenges[newDifficulty];
+    if (availableChallenges && Array.isArray(availableChallenges) && availableChallenges.length > 0) {
+      setSelectedChallenge(availableChallenges[0]);
     }
   };
 
-  const handleChallengeChange = (challengeId: string) => {
-    if (challenges && 
-        challenges[difficulty] && 
-        Array.isArray(challenges[difficulty])) {
-      const challenge = challenges[difficulty].find(c => c.id === challengeId);
+  const handleChallengeChange = (event: SelectChangeEvent<string>) => {
+    const challengeId = event.target.value;
+    const selectedDifficultyArray = challenges[difficulty];
+    if (selectedDifficultyArray && Array.isArray(selectedDifficultyArray)) {
+      const challenge = selectedDifficultyArray.find(c => c.id === challengeId);
       if (challenge) {
         setSelectedChallenge(challenge);
-        setCode(challenge.initialCode);
-        setResults([]);
-        setShowHint(false);
       }
     }
   };
@@ -534,14 +549,6 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (progress) {
-      setTotalPoints(progress.totalPoints);
-      setCompletedChallenges(progress.completedChallenges);
-      setBossesState(progress.bossesState);
-    }
-  }, [progress]);
-
-  useEffect(() => {
     if (selectedChallenge) {
       const learningData = getQuestLearningData(selectedChallenge.id);
       if (learningData) {
@@ -674,19 +681,22 @@ const GamePage: React.FC = () => {
         </Paper>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>問題を選択</InputLabel>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Challenge</InputLabel>
             <Select
               value={selectedChallenge?.id || ''}
-              onChange={(e) => handleChallengeChange(e.target.value)}
-              label="問題を選択"
+              onChange={handleChallengeChange}
+              label="Challenge"
             >
-              {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) && 
-                challenges[difficulty].map((challenge) => (
-                  <MenuItem key={challenge.id} value={challenge.id}>
-                    {challenge.title} {completedChallenges.includes(challenge.id) ? '✅' : ''}
-                  </MenuItem>
-                ))}
+              {challenges[difficulty] && Array.isArray(challenges[difficulty]) && challenges[difficulty].map((challenge) => (
+                <MenuItem
+                  key={challenge.id}
+                  value={challenge.id}
+                  disabled={progress?.completedChallenges.includes(challenge.id)}
+                >
+                  {challenge.title} {progress?.completedChallenges.includes(challenge.id) ? '(Completed)' : ''}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
           <Typography variant="h6" color="primary">
