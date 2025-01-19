@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import MagicBackground from './MagicBackground';
@@ -8,16 +8,10 @@ import { useLevel } from '../contexts/LevelContext';
 import LevelDisplay from './LevelDisplay';
 import { useProgress } from '../contexts/ProgressContext';
 import { executeCode } from '../utils/codeExecutor';
-import { CodeExplanation } from './CodeExplanation';
-import { SolutionExample } from './SolutionExample';
-import { HintSystem } from './HintSystem';
-import { useLearning } from '../contexts/LearningContext';
-import { getQuestLearningData } from '../data/questData';
 import { LoadingSpinner } from './LoadingSpinner';
 import { CelebrationEffect } from './CelebrationEffect';
 import { DamageEffect } from './DamageEffect';
 import { LevelUpEffect } from './LevelUpEffect';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { SelectChangeEvent } from '@mui/material';
 
 interface Challenge {
@@ -64,9 +58,8 @@ const defaultBosses: Record<'easy' | 'medium' | 'hard', Boss> = {
 
 const GamePage: React.FC = () => {
   // Hooks and Context
-  const { addExperience, level } = useLevel();
+  const { addExperience, currentLevel: level } = useLevel();
   const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
-  const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
 
   // Memoized Data
   const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
@@ -481,9 +474,9 @@ const GamePage: React.FC = () => {
         handleTestCaseSuccess(selectedChallenge!);
         setShowCelebration(true);
       }
-    } catch (error) {
-      console.error('Test execution error:', error);
-      setResults([{ success: false, message: error.message }]);
+    } catch (err: unknown) {
+      console.error('Test execution error:', err);
+      setResults([{ success: false, message: err instanceof Error ? err.message : 'Unknown error occurred' }]);
     } finally {
       setIsRunning(false);
     }
@@ -507,26 +500,30 @@ const GamePage: React.FC = () => {
   };
 
   const handleTestCaseSuccess = (challenge: Challenge) => {
-    // 基本経験値の計算
-    let expGain = 0;
-    switch (challenge.difficulty) {
-      case 'easy':
-        expGain = 50;
-        break;
-      case 'medium':
-        expGain = 100;
-        break;
-      case 'hard':
-        expGain = 200;
-        break;
-    }
+    try {
+      // 基本経験値の計算
+      let expGain = 0;
+      switch (challenge.difficulty) {
+        case 'easy':
+          expGain = 50;
+          break;
+        case 'medium':
+          expGain = 100;
+          break;
+        case 'hard':
+          expGain = 200;
+          break;
+      }
 
-    // ボーナス経験値の計算
-    if (!showHint) {
-      expGain *= 1.25; // ヒント未使用ボーナス
-    }
+      // ボーナス経験値の計算
+      if (!showHint) {
+        expGain *= 1.25; // ヒント未使用ボーナス
+      }
 
-    addExperience(Math.floor(expGain));
+      addExperience(Math.floor(expGain));
+    } catch (err) {
+      console.error('Error in handleTestCaseSuccess:', err);
+    }
   };
 
   const handleReset = () => {
@@ -562,17 +559,6 @@ const GamePage: React.FC = () => {
     setShowHint(false);
     setResetDialogOpen(false);
   };
-
-  useEffect(() => {
-    if (selectedChallenge) {
-      const learningData = getQuestLearningData(selectedChallenge.id);
-      if (learningData) {
-        setExplanation(learningData.explanation);
-        setSolution(learningData.solution);
-        setHintSystem(learningData.hints);
-      }
-    }
-  }, [selectedChallenge, setExplanation, setSolution, setHintSystem]);
 
   useEffect(() => {
     if (level > currentLevel) {
@@ -870,59 +856,6 @@ const GamePage: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
-
-        {/* 学習支援機能の追加 */}
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            学習サポート
-          </Typography>
-          
-          {selectedChallenge && (
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                {explanation && (
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography>コードの説明</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <CodeExplanation explanation={explanation} />
-                    </AccordionDetails>
-                  </Accordion>
-                )}
-              </Grid>
-              
-              <Grid item xs={12}>
-                {solution && (
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography>解答例</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <SolutionExample solution={solution} />
-                    </AccordionDetails>
-                  </Accordion>
-                )}
-              </Grid>
-              
-              <Grid item xs={12}>
-                {hintSystem && (
-                  <Accordion>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Typography>ヒントシステム</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <HintSystem
-                        hints={hintSystem}
-                        onUnlockHint={unlockHint}
-                      />
-                    </AccordionDetails>
-                  </Accordion>
-                )}
-              </Grid>
-            </Grid>
-          )}
-        </Box>
       </Container>
     </Box>
   );
