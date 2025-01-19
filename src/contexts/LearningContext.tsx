@@ -1,52 +1,53 @@
 import React, { createContext, useContext, useState } from 'react';
-import type { CodeExplanation } from '../types/explanation';
-import type { SolutionExample } from '../types/solution';
+import type { Explanation } from '../types/explanation';
+import type { Solution } from '../types/solution';
 import type { Hint } from '../types/hint';
 
 interface LearningContextType {
   // コード解説
-  explanation: CodeExplanation | null;
-  setExplanation: (explanation: CodeExplanation | null) => void;
+  explanation: Explanation | null;
+  setExplanation: (explanation: Explanation | null) => void;
   
   // 模範解答
-  solution: SolutionExample | null;
-  setSolution: (solution: SolutionExample | null) => void;
+  solution: Solution | null;
+  setSolution: (solution: Solution | null) => void;
   
   // ヒントシステム
-  hintSystem: Hint[];
-  setHintSystem: (hints: Hint[]) => void;
+  hintSystem: Hint[] | null;
+  setHintSystem: (hints: Hint[] | null) => void;
   unlockHint: (hintId: string) => void;
 }
 
-const LearningContext = createContext<LearningContextType | undefined>(undefined);
+const LearningContext = createContext<LearningContextType | null>(null);
 
 export const LearningProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [explanation, setExplanation] = useState<CodeExplanation | null>(null);
-  const [solution, setSolution] = useState<SolutionExample | null>(null);
-  const [hintSystem, setHintSystem] = useState<Hint[]>([]);
+  const [explanation, setExplanation] = useState<Explanation | null>(null);
+  const [solution, setSolution] = useState<Solution | null>(null);
+  const [hintSystem, setHintSystem] = useState<Hint[] | null>(null);
 
   const unlockHint = (hintId: string) => {
-    setHintSystem(prev => 
-      prev.map(hint => 
-        hint.level.toString() === hintId 
-          ? { ...hint, unlocked: true }
-          : hint
-      )
-    );
-  };
+    if (!hintSystem) return;
 
-  const value: LearningContextType = {
-    explanation,
-    setExplanation,
-    solution,
-    setSolution,
-    hintSystem,
-    setHintSystem,
-    unlockHint
+    setHintSystem(prev => {
+      if (!prev) return null;
+      return prev.map(hint => 
+        hint.level.toString() === hintId ? { ...hint, unlocked: true } : hint
+      );
+    });
   };
 
   return (
-    <LearningContext.Provider value={value}>
+    <LearningContext.Provider
+      value={{
+        explanation,
+        setExplanation,
+        solution,
+        setSolution,
+        hintSystem,
+        setHintSystem,
+        unlockHint
+      }}
+    >
       {children}
     </LearningContext.Provider>
   );
@@ -54,7 +55,7 @@ export const LearningProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useLearning = () => {
   const context = useContext(LearningContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useLearning must be used within a LearningProvider');
   }
   return context;
