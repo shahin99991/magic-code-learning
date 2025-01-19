@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Container, Typography, Button, Grid } from '@mui/material';
-import styled from '@emotion/styled';
-import { WASI } from '@wasmer/wasi';
-import { WasmFs } from '@wasmer/wasmfs';
-import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { Box, Typography, Container, Grid } from '@mui/material';
+import { EditorView, EditorState } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 
 const EditorContainer = styled(Box)`
