@@ -377,32 +377,35 @@ const GamePage: React.FC = () => {
         }
 
         // 2. Set initial challenge
-        if (challenges && difficulty && challenges[difficulty]) {
-          const availableChallenges = challenges[difficulty];
-          if (availableChallenges && availableChallenges.length > 0) {
-            const initialChallenge = availableChallenges[0];
-            setSelectedChallenge(initialChallenge);
-            setCode(initialChallenge.initialCode || '');
-            
-            // 3. Load learning data for the initial challenge
-            const learningData = getQuestLearningData(initialChallenge.id);
-            if (learningData) {
-              const { explanation, solution, hints } = learningData;
-              setExplanation(explanation);
-              setSolution({
-                ...solution,
-                alternatives: solution.alternatives.map(alt => ({
-                  description: alt.description,
-                  code: alt.code
-                }))
-              });
-              setHintSystem(hints.map(hint => ({
-                level: hint.level,
-                content: hint.content,
-                cost: hint.cost,
-                unlocked: false
-              })));
-            }
+        if (!challenges || !challenges[difficulty] || !Array.isArray(challenges[difficulty])) {
+          console.error('Challenges not properly initialized');
+          return;
+        }
+
+        const availableChallenges = challenges[difficulty];
+        if (availableChallenges && availableChallenges.length > 0) {
+          const initialChallenge = availableChallenges[0];
+          setSelectedChallenge(initialChallenge);
+          setCode(initialChallenge.initialCode || '');
+          
+          // 3. Load learning data for the initial challenge
+          const learningData = getQuestLearningData(initialChallenge.id);
+          if (learningData) {
+            const { explanation, solution, hints } = learningData;
+            setExplanation(explanation);
+            setSolution({
+              ...solution,
+              alternatives: solution.alternatives.map(alt => ({
+                description: alt.description,
+                code: alt.code
+              }))
+            });
+            setHintSystem(hints.map(hint => ({
+              level: hint.level,
+              content: hint.content,
+              cost: hint.cost,
+              unlocked: false
+            })));
           }
         }
       } catch (error: unknown) {
@@ -425,7 +428,7 @@ const GamePage: React.FC = () => {
 
   // Handle difficulty change with proper checks
   const handleDifficultyChange = (_event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
-    if (!challenges || !challenges[newDifficulty]) {
+    if (!challenges || !challenges[newDifficulty] || !Array.isArray(challenges[newDifficulty])) {
       console.error('Challenges not properly initialized');
       return;
     }
@@ -442,7 +445,7 @@ const GamePage: React.FC = () => {
   // Handle challenge change with proper checks
   const handleChallengeChange = (event: SelectChangeEvent<string>) => {
     const challengeId = event.target.value;
-    if (!challenges || !challenges[difficulty]) {
+    if (!challenges || !challenges[difficulty] || !Array.isArray(challenges[difficulty])) {
       console.error('Challenges not properly initialized');
       return;
     }
@@ -749,13 +752,13 @@ const GamePage: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Challenge</InputLabel>
-            <Select
-              value={selectedChallenge?.id || ''}
-              onChange={handleChallengeChange}
-              label="Challenge"
-            >
-              {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) && 
-                challenges[difficulty].map((challenge) => (
+            {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) && challenges[difficulty].length > 0 ? (
+              <Select
+                value={selectedChallenge?.id || ''}
+                onChange={handleChallengeChange}
+                label="Challenge"
+              >
+                {challenges[difficulty].map((challenge) => (
                   <MenuItem
                     key={challenge.id}
                     value={challenge.id}
@@ -764,7 +767,10 @@ const GamePage: React.FC = () => {
                     {challenge.title} {progress?.completedChallenges?.includes(challenge.id) ? '(Completed)' : ''}
                   </MenuItem>
                 ))}
-            </Select>
+              </Select>
+            ) : (
+              <Typography>チャレンジを読み込み中...</Typography>
+            )}
           </FormControl>
           <Typography variant="h6" color="primary">
             総ポイント: {totalPoints}
