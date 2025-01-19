@@ -7,7 +7,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "jest",
-    "vercel-build": "vite build",
+    "vercel-build": "tsc --noEmit && vite build",
     "clean": "rm -rf dist",
     "postinstall": "npm run build"
   },
