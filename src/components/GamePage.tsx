@@ -525,7 +525,7 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
+    if (progress) {
       setTotalPoints(progress.totalPoints);
       setCompletedChallenges(progress.completedChallenges);
       setBossesState(progress.bossesState);
@@ -764,7 +764,7 @@ const GamePage: React.FC = () => {
                 {result.message}
               </Typography>
             ))}
-            {Array.isArray(results) && results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge?.id || '') && (
+            {results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge?.id || '') && (
               <>
                 <Typography variant="h6" color="success.main">
                   🎉 おめでとうございます！{selectedChallenge?.points}ポイント獲得しました！
