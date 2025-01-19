@@ -41,6 +41,27 @@ interface Boss {
   image: string;
 }
 
+const defaultBosses: Record<'easy' | 'medium' | 'hard', Boss> = {
+  easy: {
+    name: '見習い魔法使いのボス',
+    maxHp: 1000,
+    currentHp: 1000,
+    image: '🧙‍♂️',
+  },
+  medium: {
+    name: '上級魔法使いのボス',
+    maxHp: 2000,
+    currentHp: 2000,
+    image: '🧙‍♀️',
+  },
+  hard: {
+    name: '大魔法使いのボス',
+    maxHp: 3000,
+    currentHp: 3000,
+    image: '🧙‍♂️✨',
+  },
+};
+
 const GamePage: React.FC = () => {
   // Hooks and Context
   const { addExperience, level } = useLevel();
@@ -312,77 +333,51 @@ const GamePage: React.FC = () => {
     ],
   }), []);
 
-  const bosses = useMemo<Record<'easy' | 'medium' | 'hard', Boss>>(() => ({
-    easy: {
-      name: '見習い魔法使いのボス',
-      maxHp: 1000,
-      currentHp: 1000,
-      image: '🧙‍♂️',
-    },
-    medium: {
-      name: '上級魔法使いのボス',
-      maxHp: 2000,
-      currentHp: 2000,
-      image: '🧙‍♀️',
-    },
-    hard: {
-      name: '大魔法使いのボス',
-      maxHp: 3000,
-      currentHp: 3000,
-      image: '🧙‍♂️✨',
-    },
-  }), []);
+  // Initialize bosses state
+  const [bossesState, setBossesState] = useState<Record<'easy' | 'medium' | 'hard', Boss>>(defaultBosses);
+
+  // Update bosses state when progress changes
+  useEffect(() => {
+    if (progress?.bossesState) {
+      setBossesState(progress.bossesState);
+    }
+  }, [progress]);
 
   // Initial State
-  const initialDifficulty: 'easy' | 'medium' | 'hard' = 'easy';
-  const initialChallenge = challenges[initialDifficulty]?.[0] || null;
-
-  // State
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>(initialDifficulty);
-  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(initialChallenge);
-  const [code, setCode] = useState(initialChallenge?.initialCode || '');
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [code, setCode] = useState('');
   const [results, setResults] = useState<{ success: boolean; message: string }[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
-  const [showHint, setShowHint] = useState(false);
-  const [bossesState, setBossesState] = useState<Record<'easy' | 'medium' | 'hard', Boss>>(bosses);
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDamage, setShowDamage] = useState(false);
   const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
   const [currentLevel, setCurrentLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
 
-  // Initial Data Load
+  // Load initial data
   useEffect(() => {
     if (progress) {
-      setTotalPoints(progress.totalPoints);
-      setCompletedChallenges(progress.completedChallenges);
-      setBossesState(progress.bossesState);
+      setTotalPoints(progress.totalPoints || 0);
+      setCompletedChallenges(progress.completedChallenges || []);
     }
   }, [progress]);
 
+  // Set initial challenge
   useEffect(() => {
-    if (!progress || !challenges) return;
+    if (!challenges || !challenges.easy || !Array.isArray(challenges.easy)) return;
     
-    const difficulty = progress.completedChallenges?.length === 0 ? 'easy' : 
-      progress.completedChallenges?.length < 5 ? 'medium' : 'hard';
-    
-    const availableChallenges = challenges?.[difficulty];
-    if (!availableChallenges || !Array.isArray(availableChallenges)) return;
-    
-    const uncompletedChallenge = availableChallenges.find(
-      challenge => !progress.completedChallenges?.includes(challenge.id)
-    );
-    
-    if (uncompletedChallenge) {
-      setSelectedChallenge(uncompletedChallenge);
-      setDifficulty(difficulty);
-      setCode(uncompletedChallenge.initialCode);
+    const initialChallenge = challenges.easy[0];
+    if (initialChallenge) {
+      setSelectedChallenge(initialChallenge);
+      setCode(initialChallenge.initialCode || '');
     }
-  }, [progress, challenges]);
+  }, [challenges]);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
@@ -526,13 +521,13 @@ const GamePage: React.FC = () => {
       resetProgress();
       setTotalPoints(0);
       setCompletedChallenges([]);
-      setBossesState(bosses);
+      setBossesState(defaultBosses);
     } else {
       resetDifficulty(difficulty);
       // 現在の難易度のボスのみリセット
       setBossesState(prev => ({
         ...prev,
-        [difficulty]: bosses[difficulty],
+        [difficulty]: defaultBosses[difficulty],
       }));
       // 現在の難易度のチャレンジの完了状態をリセット
       setCompletedChallenges(prev => 
@@ -655,7 +650,7 @@ const GamePage: React.FC = () => {
               {bossesState[difficulty].image}
             </Typography>
             <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>
-              {bosses[difficulty].name}
+              {bossesState[difficulty].name}
             </Typography>
             <Typography variant="body1" color="textSecondary">
               状態: {getBossStatus(bossesState[difficulty])}
