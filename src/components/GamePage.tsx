@@ -367,19 +367,20 @@ const GamePage: React.FC = () => {
   useEffect(() => {
     if (!progress || !challenges) return;
     
-    const difficulty = progress.completedChallenges.length === 0 ? 'easy' : 
-      progress.completedChallenges.length < 5 ? 'medium' : 'hard';
+    const difficulty = progress.completedChallenges?.length === 0 ? 'easy' : 
+      progress.completedChallenges?.length < 5 ? 'medium' : 'hard';
     
-    const availableChallenges = challenges[difficulty];
+    const availableChallenges = challenges?.[difficulty];
     if (!availableChallenges || !Array.isArray(availableChallenges)) return;
     
     const uncompletedChallenge = availableChallenges.find(
-      challenge => !progress.completedChallenges.includes(challenge.id)
+      challenge => !progress.completedChallenges?.includes(challenge.id)
     );
     
     if (uncompletedChallenge) {
       setSelectedChallenge(uncompletedChallenge);
       setDifficulty(difficulty);
+      setCode(uncompletedChallenge.initialCode);
     }
   }, [progress, challenges]);
 
@@ -390,19 +391,22 @@ const GamePage: React.FC = () => {
   const handleDifficultyChange = (event: SelectChangeEvent<string>) => {
     const newDifficulty = event.target.value as 'easy' | 'medium' | 'hard';
     setDifficulty(newDifficulty);
-    const availableChallenges = challenges[newDifficulty];
+    const availableChallenges = challenges?.[newDifficulty];
     if (availableChallenges && Array.isArray(availableChallenges) && availableChallenges.length > 0) {
-      setSelectedChallenge(availableChallenges[0]);
+      const firstChallenge = availableChallenges[0];
+      setSelectedChallenge(firstChallenge);
+      setCode(firstChallenge.initialCode);
     }
   };
 
   const handleChallengeChange = (event: SelectChangeEvent<string>) => {
     const challengeId = event.target.value;
-    const selectedDifficultyArray = challenges[difficulty];
-    if (selectedDifficultyArray && Array.isArray(selectedDifficultyArray)) {
-      const challenge = selectedDifficultyArray.find(c => c.id === challengeId);
+    const availableChallenges = challenges?.[difficulty];
+    if (availableChallenges && Array.isArray(availableChallenges)) {
+      const challenge = availableChallenges.find(c => c.id === challengeId);
       if (challenge) {
         setSelectedChallenge(challenge);
+        setCode(challenge.initialCode);
       }
     }
   };
@@ -691,13 +695,13 @@ const GamePage: React.FC = () => {
               onChange={handleChallengeChange}
               label="Challenge"
             >
-              {challenges[difficulty] && Array.isArray(challenges[difficulty]) && challenges[difficulty].map((challenge) => (
+              {challenges?.[difficulty] && Array.isArray(challenges[difficulty]) && challenges[difficulty].map((challenge) => (
                 <MenuItem
                   key={challenge.id}
                   value={challenge.id}
-                  disabled={progress?.completedChallenges.includes(challenge.id)}
+                  disabled={progress?.completedChallenges?.includes(challenge.id)}
                 >
-                  {challenge.title} {progress?.completedChallenges.includes(challenge.id) ? '(Completed)' : ''}
+                  {challenge.title} {progress?.completedChallenges?.includes(challenge.id) ? '(Completed)' : ''}
                 </MenuItem>
               ))}
             </Select>
