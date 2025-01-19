@@ -360,28 +360,48 @@ const GamePage: React.FC = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
 
-  // Load initial data with proper checks
-  useEffect(() => {
-    if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
-      setTotalPoints(progress.totalPoints);
-      setCompletedChallenges(progress.completedChallenges);
-    }
-  }, [progress]);
+  // Load initial data with proper checks and loading state
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // Set initial challenge with proper checks
+  // Initialize data in sequence
   useEffect(() => {
-    if (!challenges || !difficulty || !challenges[difficulty]) {
-      console.error('Required data not initialized');
-      return;
-    }
+    const initializeGameData = async () => {
+      try {
+        setIsInitializing(true);
+        
+        // 1. Load progress data
+        if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
+          setTotalPoints(progress.totalPoints);
+          setCompletedChallenges(progress.completedChallenges);
+          setBossesState(progress.bossesState);
+        }
 
-    const availableChallenges = challenges[difficulty];
-    if (availableChallenges && availableChallenges.length > 0) {
-      const initialChallenge = availableChallenges[0];
-      setSelectedChallenge(initialChallenge);
-      setCode(initialChallenge.initialCode || '');
-    }
-  }, [challenges, difficulty]);
+        // 2. Set initial challenge
+        if (challenges && difficulty && challenges[difficulty]) {
+          const availableChallenges = challenges[difficulty];
+          if (availableChallenges && availableChallenges.length > 0) {
+            const initialChallenge = availableChallenges[0];
+            setSelectedChallenge(initialChallenge);
+            setCode(initialChallenge.initialCode || '');
+            
+            // 3. Load learning data for the initial challenge
+            const learningData = getQuestLearningData(initialChallenge.id);
+            if (learningData) {
+              setExplanation(learningData.explanation);
+              setSolution(learningData.solution);
+              setHintSystem(learningData.hints);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Initialization error:', error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeGameData();
+  }, [progress, challenges, difficulty]);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
@@ -564,17 +584,6 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (selectedChallenge) {
-      const learningData = getQuestLearningData(selectedChallenge.id);
-      if (learningData) {
-        setExplanation(learningData.explanation);
-        setSolution(learningData.solution);
-        setHintSystem(learningData.hints);
-      }
-    }
-  }, [selectedChallenge, setExplanation, setSolution, setHintSystem]);
-
-  useEffect(() => {
     if (level > currentLevel) {
       setCurrentLevel(level);
       setShowLevelUp(true);
@@ -590,6 +599,29 @@ const GamePage: React.FC = () => {
       };
     }
   }, [level, currentLevel]);
+
+  if (isInitializing) {
+    return (
+      <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+        <MagicBackground />
+        <MagicParticles />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center'
+          }}
+        >
+          <LoadingSpinner />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            魔法の世界を準備中...
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>

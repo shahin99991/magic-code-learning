@@ -59,7 +59,7 @@ const LoginForm: React.FC = () => {
         setIsSubmitting(true);
         clearError();
         await login({ email, password });
-        navigate('/');
+        navigate('/game');
       } catch (error) {
         console.error('Login error:', error);
       } finally {
