@@ -10,33 +10,15 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { CelebrationEffect } from './CelebrationEffect';
 import { DamageEffect } from './DamageEffect';
 import { LevelUpEffect } from './LevelUpEffect';
-import { Boss, Challenge } from '../types/game';
+import { Boss, Challenge, TestResult } from '../types/game';
 import CodeEditor from './CodeEditor';
-import { CodeExplanation } from './CodeExplanation';
-import { SolutionExample } from './SolutionExample';
-import { HintSystem } from './HintSystem';
-import { useLearning } from '../contexts/LearningContext';
-import { getQuestLearningData } from '../data/questData';
-import { ExpandMoreIcon } from '@mui/icons-material';
 import { SelectChangeEvent } from '@mui/material';
-import TestResults from './TestResults';
-import BossDisplay from './BossDisplay';
-
-interface TestResult {
-  input: any[];
-  expected: any;
-  actual: any;
-  passed: boolean;
-  success?: boolean;
-  message?: string;
-}
 
 interface GamePageProps {}
 
 const GamePage: React.FC<GamePageProps> = () => {
-  const { level: currentLevel, addExperience } = useLevel();
+  const { level: currentLevel } = useLevel();
   const { progress, updateProgress } = useProgress();
-  const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
   const [playerLevel, setPlayerLevel] = useState(currentLevel);
 
   // Memoized Data
@@ -372,7 +354,7 @@ const GamePage: React.FC<GamePageProps> = () => {
   };
 
   // Handle difficulty change with proper checks
-  const handleDifficultyChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleDifficultyChange = (_event: React.SyntheticEvent, newValue: string) => {
     setDifficulty(newValue as 'easy' | 'medium' | 'hard');
     
     const availableChallenges = challenges[newValue as 'easy' | 'medium' | 'hard'];

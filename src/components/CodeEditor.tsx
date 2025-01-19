@@ -1,7 +1,6 @@
 import React from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
-import { Paper } from '@mui/material';
+import Editor from '@monaco-editor/react';
+import { Box } from '@mui/material';
 
 interface CodeEditorProps {
   code: string;
@@ -10,15 +9,23 @@ interface CodeEditorProps {
 
 const CodeEditor: React.FC<CodeEditorProps> = ({ code, onChange }) => {
   return (
-    <Paper elevation={3} sx={{ mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
-      <CodeMirror
+    <Box sx={{ height: '400px', width: '100%' }}>
+      <Editor
+        height="100%"
+        defaultLanguage="javascript"
         value={code}
-        height="300px"
-        extensions={[javascript()]}
-        onChange={onChange}
-        theme="light"
+        onChange={(value) => onChange(value || '')}
+        theme="vs-dark"
+        options={{
+          minimap: { enabled: false },
+          fontSize: 14,
+          lineNumbers: 'on',
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          tabSize: 2,
+        }}
       />
-    </Paper>
+    </Box>
   );
 };
 

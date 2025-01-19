@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Boss, Progress } from '../types/game';
+import React, { createContext, useContext, useState } from 'react';
+import { GameState } from '../types/game';
 
 interface ProgressContextType {
-  progress: Progress | null;
+  progress: GameState | null;
   updateProgress: (points: number) => void;
 }
 
@@ -17,34 +17,10 @@ export const useProgress = () => {
 };
 
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [progress, setProgress] = useState<Progress | null>(() => {
-    try {
-      const savedProgress = localStorage.getItem('gameProgress');
-      if (savedProgress) {
-        const parsed = JSON.parse(savedProgress);
-        if (parsed && 
-            Array.isArray(parsed.completedChallenges) && 
-            typeof parsed.totalPoints === 'number' && 
-            parsed.bossesState) {
-          return parsed;
-        }
-      }
-    } catch (error) {
-      console.error('Failed to parse saved progress:', error);
-    }
-    return {
-      completedChallenges: [],
-      totalPoints: 0,
-      bossesState: {
-        easy: { name: '見習い魔法使いのボス', maxHp: 1000, currentHp: 1000, image: '🧙‍♂️' },
-        medium: { name: '上級魔法使いのボス', maxHp: 2000, currentHp: 2000, image: '🧙‍♀️' },
-        hard: { name: '大魔法使いのボス', maxHp: 3000, currentHp: 3000, image: '🧙‍♂️✨' }
-      }
-    };
-  });
+  const [progress, setProgress] = useState<GameState | null>(null);
 
   const updateProgress = (points: number) => {
-    setProgress(prev => {
+    setProgress((prev: GameState | null) => {
       if (!prev) return null;
       return {
         ...prev,
@@ -52,16 +28,6 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
     });
   };
-
-  useEffect(() => {
-    if (progress) {
-      try {
-        localStorage.setItem('gameProgress', JSON.stringify(progress));
-      } catch (error) {
-        console.error('Failed to save progress:', error);
-      }
-    }
-  }, [progress]);
 
   return (
     <ProgressContext.Provider value={{ progress, updateProgress }}>

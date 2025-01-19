@@ -1,65 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, LinearProgress } from '@mui/material';
+import React from 'react';
+import { Box, Typography, Paper } from '@mui/material';
 import { Boss } from '../types/game';
 
 interface BossDisplayProps {
   boss: Boss;
-  results: { input: any[]; expected: any; actual: any; passed: boolean }[];
 }
 
-const BossDisplay: React.FC<BossDisplayProps> = ({ boss, results }) => {
-  const [currentHp, setCurrentHp] = useState(boss.currentHp);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const passedTests = results.filter(result => result.passed).length;
-    if (passedTests > 0) {
-      const damage = passedTests * 100;
-      setIsAnimating(true);
-      const newHp = Math.max(0, currentHp - damage);
-      
-      // HPを徐々に減少させるアニメーション
-      const step = damage / 10;
-      let current = currentHp;
-      const interval = setInterval(() => {
-        current = Math.max(newHp, current - step);
-        setCurrentHp(current);
-        if (current <= newHp) {
-          clearInterval(interval);
-          setIsAnimating(false);
-        }
-      }, 100);
-
-      return () => clearInterval(interval);
-    }
-  }, [results]);
-
-  const hpPercentage = (currentHp / boss.maxHp) * 100;
+const BossDisplay: React.FC<BossDisplayProps> = ({ boss }) => {
+  const getBossStatus = (boss: Boss) => {
+    const hpPercentage = (boss.currentHp / boss.maxHp) * 100;
+    if (boss.currentHp === 0) return '倒れた！';
+    if (hpPercentage <= 25) return '瀕死';
+    if (hpPercentage <= 50) return '苦戦中';
+    if (hpPercentage <= 75) return '余裕がある';
+    return '健在';
+  };
 
   return (
-    <Box>
-      <Box display="flex" alignItems="center" mb={1}>
-        <Typography variant="h5" sx={{ mr: 2 }}>
-          {boss.image} {boss.name}
+    <Paper elevation={3} sx={{ p: 3, mb: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Typography variant="h5" component="span">
+          {boss.image}
         </Typography>
-        <Typography>
-          HP: {Math.ceil(currentHp)}/{boss.maxHp}
+        <Typography variant="h5" component="span" sx={{ fontWeight: 'bold' }}>
+          {boss.name}
+        </Typography>
+        <Typography variant="body1" color="textSecondary">
+          状態: {getBossStatus(boss)}
         </Typography>
       </Box>
-      <LinearProgress
-        variant="determinate"
-        value={hpPercentage}
-        sx={{
-          height: 20,
-          borderRadius: 1,
-          backgroundColor: 'grey.300',
-          '& .MuiLinearProgress-bar': {
-            backgroundColor: isAnimating ? 'warning.main' : 'success.main',
-            transition: 'transform 0.1s linear',
-          },
-        }}
-      />
-    </Box>
+      <Box sx={{ width: '100%', bgcolor: 'grey.300', borderRadius: 1, height: 20, position: 'relative' }}>
+        <Box
+          sx={{
+            width: `${(boss.currentHp / boss.maxHp) * 100}%`,
+            bgcolor: 'error.main',
+            height: '100%',
+            borderRadius: 1,
+            transition: 'width 0.5s ease-in-out',
+          }}
+        />
+        <Typography
+          variant="body2"
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'white',
+            textShadow: '1px 1px 2px black',
+          }}
+        >
+          HP: {boss.currentHp} / {boss.maxHp}
+        </Typography>
+      </Box>
+    </Paper>
   );
 };
 
