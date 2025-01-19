@@ -107,12 +107,13 @@ export const CodingPage: React.FC = () => {
       executeCode(customConsole);
       
       setOutput('✨ Spell cast successfully!\n\nOutput:\n' + output);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
-        setOutput(`🌋 Your spell misfired!\nError: ${error.message}`);
+        console.error('Error executing code:', error.message);
       } else {
-        setOutput(`🌋 Your spell misfired!\nAn unknown error occurred`);
+        console.error('Error executing code:', String(error));
       }
+      setOutput(`🌋 Your spell misfired!\nAn unknown error occurred`);
     } finally {
       setIsExecuting(false);
     }

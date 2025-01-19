@@ -405,8 +405,12 @@ const GamePage: React.FC = () => {
             }
           }
         }
-      } catch (error) {
-        console.error('Initialization error:', error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Initialization error:', error.message);
+        } else {
+          console.error('Initialization error:', String(error));
+        }
       } finally {
         setIsInitializing(false);
       }

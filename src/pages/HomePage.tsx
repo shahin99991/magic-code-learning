@@ -47,8 +47,15 @@ export const HomePage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8, textAlign: 'center' }}>
-      <Typography variant="h2" sx={{ color: '#B388FF', textShadow: '0 0 10px #B388FF' }}>
-        Magic Code Learning
+      <Typography 
+        variant="h2" 
+        sx={{ 
+          fontWeight: 'bold',
+          color: 'primary.main',
+          mb: 2 
+        }}
+      >
+        Welcome to Magic Code Learning
       </Typography>
       <Typography variant="h5" color="secondary" gutterBottom>
         プログラミングは現代の魔法。あなたも魔法使いになろう。

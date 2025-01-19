@@ -7,9 +7,9 @@ class CodeExecutionError extends Error {
   }
 }
 
-interface Context {
+interface SandboxContext {
+  [key: string]: unknown;
   fn?: Function;
-  [key: string]: any;
 }
 
 export const executeCode = async (
@@ -28,7 +28,7 @@ export const executeCode = async (
 
     let errorMessage = '';
     try {
-      const context: Context = {};
+      const context: SandboxContext = {};
       const wrappedCode = `
         ${code}
         context.fn = ${code.trim()};
@@ -58,20 +58,18 @@ export const executeCode = async (
       } else {
         throw new Error('Function is not properly defined');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // タイムアウトのクリア
       clearTimeout(timeoutId);
 
       if (error instanceof Error) {
-        errorMessage = error.message;
+        console.error('Code execution error:', error.message);
+        throw error;
       } else {
-        errorMessage = 'An unknown error occurred';
+        const errorMessage = String(error);
+        console.error('Code execution error:', errorMessage);
+        throw new Error(errorMessage);
       }
-
-      resolve({
-        success: false,
-        message: errorMessage,
-      });
     }
   });
 }; 

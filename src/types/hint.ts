@@ -5,6 +5,10 @@ export interface Hint {
   unlocked?: boolean;
 }
 
+export interface HintData {
+  [key: string]: Hint[];
+}
+
 export interface HintSystemProps {
   hints: Hint[];
   onUnlockHint: (hintId: string) => void;
