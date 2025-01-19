@@ -7,6 +7,7 @@ interface LevelContextType {
   totalExp: number;
   addExperience: (amount: number) => void;
   currentTitle: string;
+  resetProgress: () => void;
 }
 
 const LevelContext = createContext<LevelContextType | undefined>(undefined);
@@ -45,6 +46,11 @@ const saveLevelData = (data: {
   localStorage.setItem(LEVEL_DATA_KEY, JSON.stringify(data));
 };
 
+// LocalStorageのデータをクリア
+const clearLevelData = () => {
+  localStorage.removeItem(LEVEL_DATA_KEY);
+};
+
 export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 初期値の設定（LocalStorageから読み込むか、デフォルト値を使用）
   const savedData = loadLevelData();
@@ -65,8 +71,17 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addExperience = (amount: number) => {
-    setCurrentExp(prev => prev + amount);
-    setTotalExp(prev => prev + amount);
+    setCurrentExp((prev: number) => prev + amount);
+    setTotalExp((prev: number) => prev + amount);
+  };
+
+  const resetProgress = () => {
+    clearLevelData();
+    setCurrentExp(0);
+    setCurrentLevel(1);
+    setTotalExp(0);
+    setExpToNextLevel(calculateExpForNextLevel(1));
+    setCurrentTitle(getTitleForLevel(1));
   };
 
   // 経験値データの変更を監視してLocalStorageに保存
@@ -91,6 +106,7 @@ export const LevelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         totalExp,
         addExperience,
         currentTitle,
+        resetProgress,
       }}
     >
       {children}

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { authApi } from '../api/auth';
+import { useLevel } from './LevelContext';
+import { useProgress } from './ProgressContext';
 
 interface User {
   email: string;
@@ -39,6 +41,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { resetProgress } = useProgress();
 
   const login = async (credentials: LoginCredentials) => {
     try {
@@ -68,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authApi.logout();
       localStorage.removeItem('token');
+      resetProgress();
       setUser(null);
       setError(null);
     } catch (err) {

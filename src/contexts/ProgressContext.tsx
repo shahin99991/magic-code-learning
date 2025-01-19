@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useLevel } from './LevelContext';
 
 interface GameProgress {
   completedChallenges: string[];
@@ -36,6 +37,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const savedProgress = localStorage.getItem('gameProgress');
     return savedProgress ? JSON.parse(savedProgress) : defaultProgress;
   });
+  const { resetProgress: resetLevel } = useLevel();
 
   const updateProgress = (newProgress: Partial<GameProgress>) => {
     setProgress(prev => {
@@ -84,6 +86,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const resetProgress = () => {
     localStorage.removeItem('gameProgress');
     setProgress(defaultProgress);
+    resetLevel();
   };
 
   const resetDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
