@@ -7,9 +7,14 @@ class CodeExecutionError extends Error {
   }
 }
 
+interface Context {
+  fn?: Function;
+  [key: string]: any;
+}
+
 export const executeCode = async (
   code: string,
-  input: any[],
+  input: any[] = [],
   expected: any,
   timeoutMs: number = 3000
 ): Promise<{ success: boolean; message: string }> => {
@@ -21,66 +26,46 @@ export const executeCode = async (
       });
     }, timeoutMs);
 
+    let errorMessage = '';
     try {
-      // コードを実行可能な関数として評価
-      let fn;
-      if (code.includes('function')) {
-        // 関数定義を含む場合は関数名を動的に取得
-        const functionMatch = code.match(/function\s+(\w+)/);
-        if (!functionMatch) {
-          throw new Error('関数の定義が見つかりません');
+      const context: Context = {};
+      const wrappedCode = `
+        ${code}
+        context.fn = ${code.trim()};
+      `;
+      
+      eval(wrappedCode);
+      
+      if (typeof context.fn === 'function') {
+        const result = context.fn(...input);
+
+        // 結果の検証
+        let success = false;
+        if (Array.isArray(expected)) {
+          success = Array.isArray(result) && 
+                   result.length === expected.length &&
+                   result.every((val, idx) => val === expected[idx]);
+        } else {
+          success = result === expected;
         }
-        const functionName = functionMatch[1];
-        
-        // 関数をグローバルスコープに定義して実行
-        const context = {};
-        const wrappedCode = `
-          ${code}
-          context.fn = ${functionName};
-        `;
-        new Function('context', wrappedCode)(context);
-        fn = context.fn;
+
+        resolve({
+          success,
+          message: success
+            ? '✨ テストに成功しました！'
+            : `❌ 期待値: ${JSON.stringify(expected)}, 実際の値: ${JSON.stringify(result)}`,
+        });
       } else {
-        // 関数本体のみの場合は関数として包む
-        fn = new Function(...input.map((_, i) => `arg${i}`), code);
+        throw new Error('Function is not properly defined');
       }
-
-      // テストケースの実行
-      const result = fn(...input);
-
-      // タイムアウトのクリア
-      clearTimeout(timeoutId);
-
-      // 結果の検証
-      let success = false;
-      if (Array.isArray(expected)) {
-        success = Array.isArray(result) && 
-                 result.length === expected.length &&
-                 result.every((val, idx) => val === expected[idx]);
-      } else {
-        success = result === expected;
-      }
-
-      resolve({
-        success,
-        message: success
-          ? '✨ テストに成功しました！'
-          : `❌ 期待値: ${JSON.stringify(expected)}, 実際の値: ${JSON.stringify(result)}`,
-      });
     } catch (error) {
       // タイムアウトのクリア
       clearTimeout(timeoutId);
 
-      // エラーメッセージの整形
-      let errorMessage = '❌ エラーが発生しました: ';
-      if (error instanceof ReferenceError) {
-        errorMessage += `未定義の変数や関数が使用されています: ${error.message}`;
-      } else if (error instanceof SyntaxError) {
-        errorMessage += `構文エラーです: ${error.message}`;
-      } else if (error instanceof TypeError) {
-        errorMessage += `型エラーです: ${error.message}`;
+      if (error instanceof Error) {
+        errorMessage = error.message;
       } else {
-        errorMessage += error.message;
+        errorMessage = 'An unknown error occurred';
       }
 
       resolve({

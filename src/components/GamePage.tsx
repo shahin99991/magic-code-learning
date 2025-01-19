@@ -64,9 +64,10 @@ const defaultBosses: Record<'easy' | 'medium' | 'hard', Boss> = {
 
 const GamePage: React.FC = () => {
   // Hooks and Context
-  const { addExperience, level } = useLevel();
+  const { addExperience, currentLevel } = useLevel();
   const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
   const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
+  const [playerLevel, setPlayerLevel] = useState(currentLevel);
 
   // Memoized Data
   const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
@@ -355,7 +356,6 @@ const GamePage: React.FC = () => {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDamage, setShowDamage] = useState(false);
   const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
-  const [currentLevel, setCurrentLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
@@ -387,9 +387,21 @@ const GamePage: React.FC = () => {
             // 3. Load learning data for the initial challenge
             const learningData = getQuestLearningData(initialChallenge.id);
             if (learningData) {
-              setExplanation(learningData.explanation);
-              setSolution(learningData.solution);
-              setHintSystem(learningData.hints);
+              const { explanation, solution, hints } = learningData;
+              setExplanation(explanation);
+              setSolution({
+                ...solution,
+                alternatives: solution.alternatives.map(alt => ({
+                  description: alt.description,
+                  code: alt.code
+                }))
+              });
+              setHintSystem(hints.map(hint => ({
+                level: hint.level,
+                content: hint.content,
+                cost: hint.cost,
+                unlocked: false
+              })));
             }
           }
         }
@@ -502,8 +514,11 @@ const GamePage: React.FC = () => {
         setShowCelebration(true);
       }
     } catch (error) {
-      console.error('Test execution error:', error);
-      setResults([{ success: false, message: error.message }]);
+      if (error instanceof Error) {
+        setResults([{ success: false, message: error.message }]);
+      } else {
+        setResults([{ success: false, message: 'An unknown error occurred' }]);
+      }
     } finally {
       setIsRunning(false);
     }
@@ -584,8 +599,8 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (level > currentLevel) {
-      setCurrentLevel(level);
+    if (playerLevel > currentLevel) {
+      setPlayerLevel(currentLevel);
       setShowLevelUp(true);
       
       // 3秒後に確実に非表示にする
@@ -598,7 +613,7 @@ const GamePage: React.FC = () => {
         setShowLevelUp(false);
       };
     }
-  }, [level, currentLevel]);
+  }, [playerLevel, currentLevel]);
 
   if (isInitializing) {
     return (
@@ -648,7 +663,7 @@ const GamePage: React.FC = () => {
       
       <LevelUpEffect
         show={showLevelUp}
-        level={currentLevel}
+        level={playerLevel}
         onComplete={() => setShowLevelUp(false)}
       />
 
@@ -945,7 +960,7 @@ const GamePage: React.FC = () => {
                     </AccordionSummary>
                     <AccordionDetails>
                       <HintSystem
-                        hints={hintSystem}
+                        hints={Array.isArray(hintSystem) ? hintSystem : []}
                         onUnlockHint={unlockHint}
                       />
                     </AccordionDetails>

@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { WASI } from '@wasmer/wasi';
 import { WasmFs } from '@wasmer/wasmfs';
 import { EditorState } from '@codemirror/state';
-import { EditorView, basicSetup } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
 
 const EditorContainer = styled(Box)`
@@ -47,10 +47,9 @@ export const CodingPage: React.FC = () => {
 
   useEffect(() => {
     if (editorRef.current && !editorViewRef.current) {
-      const state = EditorState.create({
+      const newState = EditorState.create({
         doc: code,
         extensions: [
-          basicSetup,
           javascript(),
           EditorView.theme({
             '&': { height: '300px' },
@@ -62,35 +61,24 @@ export const CodingPage: React.FC = () => {
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
               color: '#B388FF',
               border: 'none'
-            },
-            '.cm-activeLineGutter': {
-              backgroundColor: 'rgba(179, 136, 255, 0.1)'
-            },
-            '.cm-line': { padding: '0 8px' },
-            '&.cm-focused': { outline: 'none' },
-            '.cm-cursor': { borderColor: '#B388FF' }
-          }),
-          EditorView.updateListener.of(update => {
-            if (update.docChanged) {
-              setCode(update.state.doc.toString());
             }
           })
         ]
       });
 
-      const view = new EditorView({
-        state,
+      editorViewRef.current = new EditorView({
+        state: newState,
         parent: editorRef.current
       });
 
-      editorViewRef.current = view;
-
       return () => {
-        view.destroy();
-        editorViewRef.current = null;
+        if (editorViewRef.current) {
+          editorViewRef.current.destroy();
+          editorViewRef.current = null;
+        }
       };
     }
-  }, []);
+  }, [code]);
 
   const handleRunCode = async () => {
     setIsExecuting(true);
@@ -120,7 +108,11 @@ export const CodingPage: React.FC = () => {
       
       setOutput('✨ Spell cast successfully!\n\nOutput:\n' + output);
     } catch (error) {
-      setOutput(`🌋 Your spell misfired!\nError: ${error.message}`);
+      if (error instanceof Error) {
+        setOutput(`🌋 Your spell misfired!\nError: ${error.message}`);
+      } else {
+        setOutput(`🌋 Your spell misfired!\nAn unknown error occurred`);
+      }
     } finally {
       setIsExecuting(false);
     }
@@ -128,11 +120,25 @@ export const CodingPage: React.FC = () => {
 
   const handleReset = () => {
     if (editorViewRef.current) {
-      const state = EditorState.create({
+      const newState = EditorState.create({
         doc: '// Write your magical code here\nconsole.log("Hello, magical world!");\n',
-        extensions: editorViewRef.current.state.extensions
+        extensions: [
+          javascript(),
+          EditorView.theme({
+            '&': { height: '300px' },
+            '.cm-content': { 
+              fontFamily: 'Source Code Pro, monospace',
+              color: '#B388FF'
+            },
+            '.cm-gutters': { 
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              color: '#B388FF',
+              border: 'none'
+            }
+          })
+        ]
       });
-      editorViewRef.current.setState(state);
+      editorViewRef.current.setState(newState);
     }
     setOutput('');
   };

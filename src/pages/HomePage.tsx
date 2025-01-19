@@ -47,9 +47,9 @@ export const HomePage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8, textAlign: 'center' }}>
-      <GlowingText variant="h2" component="h1">
+      <Typography variant="h2" sx={{ color: '#B388FF', textShadow: '0 0 10px #B388FF' }}>
         Magic Code Learning
-      </GlowingText>
+      </Typography>
       <Typography variant="h5" color="secondary" gutterBottom>
         プログラミングは現代の魔法。あなたも魔法使いになろう。
       </Typography>

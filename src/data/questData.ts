@@ -1,44 +1,15 @@
-import { CodeExplanation } from '../types/explanation';
-import { SolutionExample } from '../types/solution';
-import { HintSystem } from '../types/hint';
+import type { CodeExplanation } from '../types/explanation';
+import type { SolutionExample } from '../types/solution';
+import type { Hint } from '../types/hint';
 
-interface CodeExplanation {
-  lineByLine: string[];
-  concepts: string[];
-  tips: string[];
-}
-
-interface SolutionExample {
-  code: string;
-  explanation: string;
-  complexity: {
-    time: string;
-    space: string;
-  };
-  alternatives: {
-    code: string;
-    explanation: string;
-  }[];
-}
-
-interface HintSystem {
-  hints: {
-    content: string;
-    cost: number;
-    unlocked: boolean;
-  }[];
-}
-
-interface QuestLearningData {
-  id: string;
+interface QuestData {
   explanation: CodeExplanation;
   solution: SolutionExample;
-  hints: HintSystem;
+  hints: Hint[];
 }
 
-const questLearningData: Record<string, QuestLearningData> = {
+const questData: Record<string, QuestData> = {
   '1': {
-    id: '1',
     explanation: {
       lineByLine: [
         'function magicAdd(a, b) { ... } - 2つの数値を受け取る関数を定義します',
@@ -67,37 +38,38 @@ const questLearningData: Record<string, QuestLearningData> = {
       },
       alternatives: [
         {
+          description: '一時変数を使用する方法',
           code: `function magicAdd(a, b) {
   let sum = a + b;
-          return sum;
-}`,
-          explanation: '一時変数を使用する方法。可読性は高いですが、この場合は冗長かもしれません。'
+  return sum;
+}`
         }
       ]
     },
-    hints: {
-      hints: [
-        {
-          content: '2つの数を足すには + 演算子を使います',
-          cost: 10,
-          unlocked: false
-        },
-        {
-          content: 'return文を使って結果を返すことを忘れないでください',
-          cost: 20,
-          unlocked: false
-        },
-        {
-          content: '完全な解答例: return a + b;',
-          cost: 50,
-          unlocked: false
-        }
-      ]
-    }
+    hints: [
+      {
+        level: 1,
+        content: '2つの数を足すには + 演算子を使います',
+        cost: 10,
+        unlocked: false
+      },
+      {
+        level: 2,
+        content: 'return文を使って結果を返すことを忘れないでください',
+        cost: 20,
+        unlocked: false
+      },
+      {
+        level: 3,
+        content: '完全な解答例: return a + b;',
+        cost: 50,
+        unlocked: false
+      }
+    ]
   },
   // 他のクエストデータをここに追加
 };
 
-export const getQuestLearningData = (questId: string): QuestLearningData | null => {
-  return questLearningData[questId] || null;
+export const getQuestLearningData = (questId: string): QuestData | null => {
+  return questData[questId] || null;
 }; 
