@@ -366,6 +366,19 @@ const GamePage: React.FC = () => {
     setShowHint(false);
   };
 
+  useEffect(() => {
+    if (showCelebration) {
+      const timer = setTimeout(() => {
+        setShowCelebration(false);
+      }, 3000);
+
+      return () => {
+        clearTimeout(timer);
+        setShowCelebration(false);
+      };
+    }
+  }, [showCelebration]);
+
   const runTests = async () => {
     setIsRunning(true);
     setResults([]);
