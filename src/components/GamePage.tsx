@@ -347,9 +347,13 @@ const GamePage: React.FC = () => {
   const [showLevelUp, setShowLevelUp] = useState(false);
 
   useEffect(() => {
-    if (challenges && challenges.easy && challenges.easy[0]) {
-      setSelectedChallenge(challenges.easy[0]);
-      setCode(challenges.easy[0].initialCode);
+    if (challenges && 
+        challenges.easy && 
+        Array.isArray(challenges.easy) && 
+        challenges.easy.length > 0) {
+      const initialChallenge = challenges.easy[0];
+      setSelectedChallenge(initialChallenge);
+      setCode(initialChallenge.initialCode);
     }
   }, []);
 
@@ -359,7 +363,10 @@ const GamePage: React.FC = () => {
 
   const handleDifficultyChange = (_: React.SyntheticEvent, newDifficulty: 'easy' | 'medium' | 'hard') => {
     setDifficulty(newDifficulty);
-    if (challenges[newDifficulty] && challenges[newDifficulty][0]) {
+    if (challenges && 
+        challenges[newDifficulty] && 
+        Array.isArray(challenges[newDifficulty]) && 
+        challenges[newDifficulty].length > 0) {
       const firstChallenge = challenges[newDifficulty][0];
       setSelectedChallenge(firstChallenge);
       setCode(firstChallenge.initialCode);
@@ -369,7 +376,9 @@ const GamePage: React.FC = () => {
   };
 
   const handleChallengeChange = (challengeId: string) => {
-    if (challenges[difficulty]) {
+    if (challenges && 
+        challenges[difficulty] && 
+        Array.isArray(challenges[difficulty])) {
       const challenge = challenges[difficulty].find(c => c.id === challengeId);
       if (challenge) {
         setSelectedChallenge(challenge);
@@ -672,11 +681,12 @@ const GamePage: React.FC = () => {
               onChange={(e) => handleChallengeChange(e.target.value)}
               label="問題を選択"
             >
-              {Array.isArray(challenges[difficulty]) && challenges[difficulty].map((challenge) => (
-                <MenuItem key={challenge.id} value={challenge.id}>
-                  {challenge.title} {completedChallenges.includes(challenge.id) ? '✅' : ''}
-                </MenuItem>
-              ))}
+              {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) && 
+                challenges[difficulty].map((challenge) => (
+                  <MenuItem key={challenge.id} value={challenge.id}>
+                    {challenge.title} {completedChallenges.includes(challenge.id) ? '✅' : ''}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
           <Typography variant="h6" color="primary">

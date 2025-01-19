@@ -53,26 +53,34 @@ export const useProgress = () => {
 };
 
 export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [progress, setProgress] = useState<Progress>(defaultProgress);
-
-  useEffect(() => {
-    const savedProgress = localStorage.getItem('gameProgress');
-    if (savedProgress) {
-      try {
+  const [progress, setProgress] = useState<Progress>(() => {
+    try {
+      const savedProgress = localStorage.getItem('gameProgress');
+      if (savedProgress) {
         const parsed = JSON.parse(savedProgress);
-        setProgress(parsed);
-      } catch (error) {
-        console.error('Failed to parse saved progress:', error);
-        setProgress(defaultProgress);
+        if (parsed && 
+            Array.isArray(parsed.completedChallenges) && 
+            typeof parsed.totalPoints === 'number' && 
+            parsed.bossesState) {
+          return parsed;
+        }
       }
+    } catch (error) {
+      console.error('Failed to parse saved progress:', error);
     }
-  }, []);
+    return defaultProgress;
+  });
 
   useEffect(() => {
-    localStorage.setItem('gameProgress', JSON.stringify(progress));
+    try {
+      localStorage.setItem('gameProgress', JSON.stringify(progress));
+    } catch (error) {
+      console.error('Failed to save progress:', error);
+    }
   }, [progress]);
 
   const completeChallenge = (challengeId: string) => {
+    if (!challengeId) return;
     setProgress(prev => ({
       ...prev,
       completedChallenges: [...prev.completedChallenges, challengeId],
@@ -80,6 +88,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const updateBossHp = async (difficulty: 'easy' | 'medium' | 'hard', damage: number) => {
+    if (!difficulty || typeof damage !== 'number') return;
     setProgress(prev => ({
       ...prev,
       bossesState: {
@@ -94,10 +103,15 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const resetProgress = () => {
     setProgress(defaultProgress);
-    localStorage.removeItem('gameProgress');
+    try {
+      localStorage.removeItem('gameProgress');
+    } catch (error) {
+      console.error('Failed to reset progress:', error);
+    }
   };
 
   const resetDifficulty = (difficulty: 'easy' | 'medium' | 'hard') => {
+    if (!difficulty) return;
     setProgress(prev => ({
       ...prev,
       bossesState: {
@@ -107,16 +121,16 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   };
 
+  const value = {
+    progress,
+    completeChallenge,
+    updateBossHp,
+    resetProgress,
+    resetDifficulty,
+  };
+
   return (
-    <ProgressContext.Provider
-      value={{
-        progress,
-        completeChallenge,
-        updateBossHp,
-        resetProgress,
-        resetDifficulty,
-      }}
-    >
+    <ProgressContext.Provider value={value}>
       {children}
     </ProgressContext.Provider>
   );
