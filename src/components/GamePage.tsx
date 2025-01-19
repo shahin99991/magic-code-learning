@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid } from '@mui/material';
+import { Box, Button, Container, Typography, Paper, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import MagicBackground from './MagicBackground';
@@ -8,10 +8,16 @@ import { useLevel } from '../contexts/LevelContext';
 import LevelDisplay from './LevelDisplay';
 import { useProgress } from '../contexts/ProgressContext';
 import { executeCode } from '../utils/codeExecutor';
+import { CodeExplanation } from './CodeExplanation';
+import { SolutionExample } from './SolutionExample';
+import { HintSystem } from './HintSystem';
+import { useLearning } from '../contexts/LearningContext';
+import { getQuestLearningData } from '../data/questData';
 import { LoadingSpinner } from './LoadingSpinner';
 import { CelebrationEffect } from './CelebrationEffect';
 import { DamageEffect } from './DamageEffect';
 import { LevelUpEffect } from './LevelUpEffect';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { SelectChangeEvent } from '@mui/material';
 
 interface Challenge {
@@ -58,8 +64,10 @@ const defaultBosses: Record<'easy' | 'medium' | 'hard', Boss> = {
 
 const GamePage: React.FC = () => {
   // Hooks and Context
-  const { addExperience, currentLevel: level } = useLevel();
-  const { progress, completeChallenge, updateBossHp, resetProgress, resetDifficulty } = useProgress();
+  const { addExperience, currentLevel } = useLevel();
+  const { progress, updateBossHp, resetProgress, resetDifficulty } = useProgress();
+  const { explanation, setExplanation, solution, setSolution, hintSystem, setHintSystem, unlockHint } = useLearning();
+  const [playerLevel, setPlayerLevel] = useState(currentLevel);
 
   // Memoized Data
   const challenges = useMemo<Record<'easy' | 'medium' | 'hard', Challenge[]>>(() => ({
@@ -344,44 +352,79 @@ const GamePage: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
+  const [_completedChallenges, setCompletedChallenges] = useState<string[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDamage, setShowDamage] = useState(false);
   const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
-  const [currentLevel, setCurrentLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [resetType, setResetType] = useState<'all' | 'difficulty'>('all');
 
-  // Load initial data with proper checks
-  useEffect(() => {
-    if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
-      setTotalPoints(progress.totalPoints);
-      setCompletedChallenges(progress.completedChallenges);
-    }
-  }, [progress]);
+  // Load initial data with proper checks and loading state
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // Set initial challenge with proper checks
+  // Initialize data in sequence
   useEffect(() => {
-    if (!challenges || !difficulty || !challenges[difficulty]) {
-      console.error('Required data not initialized');
-      return;
-    }
+    const initializeGameData = async () => {
+      try {
+        setIsInitializing(true);
+        
+        // 1. Load progress data
+        if (progress && progress.completedChallenges && progress.totalPoints && progress.bossesState) {
+          setTotalPoints(progress.totalPoints);
+          setCompletedChallenges(progress.completedChallenges);
+          setBossesState(progress.bossesState);
+        }
 
-    const availableChallenges = challenges[difficulty];
-    if (availableChallenges && availableChallenges.length > 0) {
-      const initialChallenge = availableChallenges[0];
-      setSelectedChallenge(initialChallenge);
-      setCode(initialChallenge.initialCode || '');
-    }
-  }, [challenges, difficulty]);
+        // 2. Set initial challenge
+        if (challenges && difficulty && challenges[difficulty]) {
+          const availableChallenges = challenges[difficulty];
+          if (availableChallenges && availableChallenges.length > 0) {
+            const initialChallenge = availableChallenges[0];
+            setSelectedChallenge(initialChallenge);
+            setCode(initialChallenge.initialCode || '');
+            
+            // 3. Load learning data for the initial challenge
+            const learningData = getQuestLearningData(initialChallenge.id);
+            if (learningData) {
+              const { explanation, solution, hints } = learningData;
+              setExplanation(explanation);
+              setSolution({
+                ...solution,
+                alternatives: solution.alternatives.map(alt => ({
+                  description: alt.description,
+                  code: alt.code
+                }))
+              });
+              setHintSystem(hints.map(hint => ({
+                level: hint.level,
+                content: hint.content,
+                cost: hint.cost,
+                unlocked: false
+              })));
+            }
+          }
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Initialization error:', error.message);
+        } else {
+          console.error('Initialization error:', String(error));
+        }
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeGameData();
+  }, [progress, challenges, difficulty]);
 
   const calculateDamage = (points: number) => {
     return Math.floor(points * 1.5); // ポイントの1.5倍のダメージを与える
   };
 
   // Handle difficulty change with proper checks
-  const handleDifficultyChange = (event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
+  const handleDifficultyChange = (_event: any, newDifficulty: 'easy' | 'medium' | 'hard') => {
     if (!challenges || !challenges[newDifficulty]) {
       console.error('Challenges not properly initialized');
       return;
@@ -474,9 +517,12 @@ const GamePage: React.FC = () => {
         handleTestCaseSuccess(selectedChallenge!);
         setShowCelebration(true);
       }
-    } catch (err: unknown) {
-      console.error('Test execution error:', err);
-      setResults([{ success: false, message: err instanceof Error ? err.message : 'Unknown error occurred' }]);
+    } catch (error) {
+      if (error instanceof Error) {
+        setResults([{ success: false, message: error.message }]);
+      } else {
+        setResults([{ success: false, message: 'An unknown error occurred' }]);
+      }
     } finally {
       setIsRunning(false);
     }
@@ -500,30 +546,26 @@ const GamePage: React.FC = () => {
   };
 
   const handleTestCaseSuccess = (challenge: Challenge) => {
-    try {
-      // 基本経験値の計算
-      let expGain = 0;
-      switch (challenge.difficulty) {
-        case 'easy':
-          expGain = 50;
-          break;
-        case 'medium':
-          expGain = 100;
-          break;
-        case 'hard':
-          expGain = 200;
-          break;
-      }
-
-      // ボーナス経験値の計算
-      if (!showHint) {
-        expGain *= 1.25; // ヒント未使用ボーナス
-      }
-
-      addExperience(Math.floor(expGain));
-    } catch (err) {
-      console.error('Error in handleTestCaseSuccess:', err);
+    // 基本経験値の計算
+    let expGain = 0;
+    switch (challenge.difficulty) {
+      case 'easy':
+        expGain = 50;
+        break;
+      case 'medium':
+        expGain = 100;
+        break;
+      case 'hard':
+        expGain = 200;
+        break;
     }
+
+    // ボーナス経験値の計算
+    if (!showHint) {
+      expGain *= 1.25; // ヒント未使用ボーナス
+    }
+
+    addExperience(Math.floor(expGain));
   };
 
   const handleReset = () => {
@@ -561,8 +603,8 @@ const GamePage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (level > currentLevel) {
-      setCurrentLevel(level);
+    if (playerLevel > currentLevel) {
+      setPlayerLevel(currentLevel);
       setShowLevelUp(true);
       
       // 3秒後に確実に非表示にする
@@ -575,7 +617,30 @@ const GamePage: React.FC = () => {
         setShowLevelUp(false);
       };
     }
-  }, [level, currentLevel]);
+  }, [playerLevel, currentLevel]);
+
+  if (isInitializing) {
+    return (
+      <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+        <MagicBackground />
+        <MagicParticles />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center'
+          }}
+        >
+          <LoadingSpinner />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            魔法の世界を準備中...
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
@@ -602,7 +667,7 @@ const GamePage: React.FC = () => {
       
       <LevelUpEffect
         show={showLevelUp}
-        level={currentLevel}
+        level={playerLevel}
         onComplete={() => setShowLevelUp(false)}
       />
 
@@ -856,6 +921,59 @@ const GamePage: React.FC = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* 学習支援機能の追加 */}
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h5" gutterBottom>
+            学習サポート
+          </Typography>
+          
+          {selectedChallenge && (
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                {explanation && (
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>コードの説明</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <CodeExplanation explanation={explanation} />
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+              </Grid>
+              
+              <Grid item xs={12}>
+                {solution && (
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>解答例</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <SolutionExample solution={solution} />
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+              </Grid>
+              
+              <Grid item xs={12}>
+                {hintSystem && (
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>ヒントシステム</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <HintSystem
+                        hints={Array.isArray(hintSystem) ? hintSystem : []}
+                        onUnlockHint={unlockHint}
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+              </Grid>
+            </Grid>
+          )}
+        </Box>
       </Container>
     </Box>
   );

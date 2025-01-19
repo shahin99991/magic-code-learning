@@ -16,25 +16,25 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <Router>
         <AuthProvider>
-          <ProgressProvider>
-            <LevelProvider>
-              <LearningProvider>
-                <Routes>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route
-                    path="/game"
-                    element={
-                      <PrivateRoute>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/game"
+              element={
+                <PrivateRoute>
+                  <ProgressProvider>
+                    <LevelProvider>
+                      <LearningProvider>
                         <GamePage />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route path="/" element={<Navigate to="/game" replace />} />
-                </Routes>
-              </LearningProvider>
-            </LevelProvider>
-          </ProgressProvider>
+                      </LearningProvider>
+                    </LevelProvider>
+                  </ProgressProvider>
+                </PrivateRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/game" replace />} />
+          </Routes>
         </AuthProvider>
       </Router>
     </ThemeProvider>

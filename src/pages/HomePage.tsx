@@ -3,11 +3,6 @@ import { Box, Typography, Button, Container, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 
-const GlowingText = styled(Typography)`
-  text-shadow: 0 0 10px #B388FF, 0 0 20px #6200EA;
-  margin-bottom: 2rem;
-`;
-
 const MagicCard = styled(Box)`
   background: rgba(98, 0, 234, 0.1);
   backdrop-filter: blur(10px);
@@ -47,9 +42,16 @@ export const HomePage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 8, textAlign: 'center' }}>
-      <GlowingText variant="h2" component="h1">
-        Magic Code Learning
-      </GlowingText>
+      <Typography 
+        variant="h2" 
+        sx={{ 
+          fontWeight: 'bold',
+          color: 'primary.main',
+          mb: 2 
+        }}
+      >
+        Welcome to Magic Code Learning
+      </Typography>
       <Typography variant="h5" color="secondary" gutterBottom>
         プログラミングは現代の魔法。あなたも魔法使いになろう。
       </Typography>

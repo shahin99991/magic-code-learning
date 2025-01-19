@@ -1,45 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Container, Typography, Button, Grid } from '@mui/material';
-import styled from '@emotion/styled';
-import { WASI } from '@wasmer/wasi';
-import { WasmFs } from '@wasmer/wasmfs';
+import { Box, Typography, Container, Grid, Button } from '@mui/material';
+import { EditorView } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
-import { EditorView, basicSetup } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
+import styled from '@emotion/styled';
 
 const EditorContainer = styled(Box)`
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid #B388FF;
-  border-radius: 8px;
-  padding: 20px;
   margin: 20px 0;
-  min-height: 300px;
-  font-family: 'Source Code Pro', monospace;
-  color: #B388FF;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.1);
 `;
 
 const OutputContainer = styled(Box)`
-  background: rgba(0, 0, 0, 0.7);
-  border: 2px solid #B388FF;
-  border-radius: 8px;
+  margin-top: 20px;
   padding: 20px;
-  margin: 20px 0;
-  min-height: 150px;
-  color: #E8E3F4;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  color: #B388FF;
 `;
 
 const MagicButton = styled(Button)`
-  background: linear-gradient(45deg, #6200EA 30%, #B388FF 90%);
-  color: white;
-  padding: 10px 20px;
   margin: 10px;
+  background: linear-gradient(45deg, #6200EA, #B388FF);
+  color: white;
   &:hover {
-    background: linear-gradient(45deg, #B388FF 30%, #6200EA 90%);
+    background: linear-gradient(45deg, #B388FF, #6200EA);
   }
 `;
 
 export const CodingPage: React.FC = () => {
-  const [code, setCode] = useState<string>('// Write your magical code here\nconsole.log("Hello, magical world!");\n');
+  const [code, _setCode] = useState<string>('// Write your magical code here\nconsole.log("Hello, magical world!");\n');
   const [output, setOutput] = useState<string>('');
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -47,10 +38,9 @@ export const CodingPage: React.FC = () => {
 
   useEffect(() => {
     if (editorRef.current && !editorViewRef.current) {
-      const state = EditorState.create({
+      const newState = EditorState.create({
         doc: code,
         extensions: [
-          basicSetup,
           javascript(),
           EditorView.theme({
             '&': { height: '300px' },
@@ -62,42 +52,30 @@ export const CodingPage: React.FC = () => {
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
               color: '#B388FF',
               border: 'none'
-            },
-            '.cm-activeLineGutter': {
-              backgroundColor: 'rgba(179, 136, 255, 0.1)'
-            },
-            '.cm-line': { padding: '0 8px' },
-            '&.cm-focused': { outline: 'none' },
-            '.cm-cursor': { borderColor: '#B388FF' }
-          }),
-          EditorView.updateListener.of(update => {
-            if (update.docChanged) {
-              setCode(update.state.doc.toString());
             }
           })
         ]
       });
 
-      const view = new EditorView({
-        state,
+      editorViewRef.current = new EditorView({
+        state: newState,
         parent: editorRef.current
       });
 
-      editorViewRef.current = view;
-
       return () => {
-        view.destroy();
-        editorViewRef.current = null;
+        if (editorViewRef.current) {
+          editorViewRef.current.destroy();
+          editorViewRef.current = null;
+        }
       };
     }
-  }, []);
+  }, [code]);
 
   const handleRunCode = async () => {
     setIsExecuting(true);
     setOutput('Casting your magical spell...\n');
     
     try {
-      const wasmFs = new WasmFs();
       let output = '';
 
       // カスタムconsole.logの実装
@@ -119,8 +97,13 @@ export const CodingPage: React.FC = () => {
       executeCode(customConsole);
       
       setOutput('✨ Spell cast successfully!\n\nOutput:\n' + output);
-    } catch (error) {
-      setOutput(`🌋 Your spell misfired!\nError: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error executing code:', error.message);
+      } else {
+        console.error('Error executing code:', String(error));
+      }
+      setOutput(`🌋 Your spell misfired!\nAn unknown error occurred`);
     } finally {
       setIsExecuting(false);
     }
@@ -128,11 +111,25 @@ export const CodingPage: React.FC = () => {
 
   const handleReset = () => {
     if (editorViewRef.current) {
-      const state = EditorState.create({
+      const newState = EditorState.create({
         doc: '// Write your magical code here\nconsole.log("Hello, magical world!");\n',
-        extensions: editorViewRef.current.state.extensions
+        extensions: [
+          javascript(),
+          EditorView.theme({
+            '&': { height: '300px' },
+            '.cm-content': { 
+              fontFamily: 'Source Code Pro, monospace',
+              color: '#B388FF'
+            },
+            '.cm-gutters': { 
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              color: '#B388FF',
+              border: 'none'
+            }
+          })
+        ]
       });
-      editorViewRef.current.setState(state);
+      editorViewRef.current.setState(newState);
     }
     setOutput('');
   };

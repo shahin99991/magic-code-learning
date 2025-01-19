@@ -4,9 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "jest"
+    "test": "jest",
+    "vercel-build": "tsc --noEmit && vite build",
+    "clean": "rm -rf dist",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
@@ -42,5 +45,8 @@
     "ts-jest": "^29.2.5",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
