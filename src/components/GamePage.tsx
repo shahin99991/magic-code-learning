@@ -659,7 +659,7 @@ const GamePage: React.FC = () => {
               onChange={(e) => handleChallengeChange(e.target.value)}
               label="問題を選択"
             >
-              {challenges[difficulty].map((challenge) => (
+              {challenges[difficulty] && challenges[difficulty].map((challenge) => (
                 <MenuItem key={challenge.id} value={challenge.id}>
                   {challenge.title} {completedChallenges.includes(challenge.id) ? '✅' : ''}
                 </MenuItem>
