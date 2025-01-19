@@ -690,18 +690,19 @@ const GamePage: React.FC = () => {
             <InputLabel>Challenge</InputLabel>
             <Select
               value={selectedChallenge?.id || ''}
-              onChange={handleChallengeChange}
+              onChange={(event: SelectChangeEvent<string>) => handleChallengeChange(event.target.value)}
               label="Challenge"
             >
-              {challenges?.[difficulty] && Array.isArray(challenges[difficulty]) && challenges[difficulty].map((challenge) => (
-                <MenuItem
-                  key={challenge.id}
-                  value={challenge.id}
-                  disabled={progress?.completedChallenges?.includes(challenge.id)}
-                >
-                  {challenge.title} {progress?.completedChallenges?.includes(challenge.id) ? '(Completed)' : ''}
-                </MenuItem>
-              ))}
+              {challenges && challenges[difficulty] && Array.isArray(challenges[difficulty]) ? 
+                challenges[difficulty].map((challenge) => (
+                  <MenuItem
+                    key={challenge.id}
+                    value={challenge.id}
+                    disabled={progress?.completedChallenges?.includes(challenge.id)}
+                  >
+                    {challenge.title} {progress?.completedChallenges?.includes(challenge.id) ? '(Completed)' : ''}
+                  </MenuItem>
+                )) : null}
             </Select>
           </FormControl>
           <Typography variant="h6" color="primary">
@@ -789,7 +790,7 @@ const GamePage: React.FC = () => {
                 {result.message}
               </Typography>
             ))}
-            {results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge?.id || '') && (
+            {results.every(r => r.success) && progress && !progress.completedChallenges?.includes(selectedChallenge?.id || '') && (
               <>
                 <Typography variant="h6" color="success.main">
                   🎉 おめでとうございます！{selectedChallenge?.points}ポイント獲得しました！
