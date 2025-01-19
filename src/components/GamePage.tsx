@@ -672,7 +672,7 @@ const GamePage: React.FC = () => {
               onChange={(e) => handleChallengeChange(e.target.value)}
               label="問題を選択"
             >
-              {challenges[difficulty] && challenges[difficulty].map((challenge) => (
+              {Array.isArray(challenges[difficulty]) && challenges[difficulty].map((challenge) => (
                 <MenuItem key={challenge.id} value={challenge.id}>
                   {challenge.title} {completedChallenges.includes(challenge.id) ? '✅' : ''}
                 </MenuItem>
@@ -749,7 +749,7 @@ const GamePage: React.FC = () => {
           </Button>
         </Box>
 
-        {results.length > 0 && (
+        {Array.isArray(results) && results.length > 0 && (
           <Paper elevation={3} sx={{ p: 3, backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
             <Typography variant="h6" gutterBottom>
               テスト結果
@@ -764,7 +764,7 @@ const GamePage: React.FC = () => {
                 {result.message}
               </Typography>
             ))}
-            {results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge?.id || '') && (
+            {Array.isArray(results) && results.every(r => r.success) && progress && !progress.completedChallenges.includes(selectedChallenge?.id || '') && (
               <>
                 <Typography variant="h6" color="success.main">
                   🎉 おめでとうございます！{selectedChallenge?.points}ポイント獲得しました！
