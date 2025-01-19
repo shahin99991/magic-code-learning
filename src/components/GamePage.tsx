@@ -352,7 +352,7 @@ const GamePage: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [completedChallenges, setCompletedChallenges] = useState<string[]>([]);
+  const [_completedChallenges, setCompletedChallenges] = useState<string[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showDamage, setShowDamage] = useState(false);
   const [damagePosition, setDamagePosition] = useState({ x: 0, y: 0 });
